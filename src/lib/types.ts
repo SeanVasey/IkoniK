@@ -62,3 +62,15 @@ export interface ClaudeModel {
   name: string;
   description: string;
 }
+
+/** Metadata record persisted after a successful file upload */
+export interface UploadRecord {
+  id: string;
+  user_id: string;
+  object_path: string;
+  filename: string;
+  mime_type: string;
+  size_bytes: number;
+  sha256: string;
+  created_at: string;
+}

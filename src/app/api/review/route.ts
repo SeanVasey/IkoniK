@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { callClaude } from '@/lib/anthropic';
 import { VECTOR_FORGE_SYSTEM_PROMPT } from '@/lib/vectorForge';
 import { verifyAuth, logUsage } from '@/lib/apiAuth';
+import { fetchUploadAsBase64 } from '@/lib/upload/fetchUploadAsBase64';
 import type { Base64ImageSource } from '@anthropic-ai/sdk/resources/messages';
 
 type ImageMediaType = Base64ImageSource['media_type'];
@@ -14,9 +15,12 @@ function isAllowedModel(value: string): value is (typeof ALLOWED_MODELS)[number]
 
 interface ReviewRequestBody {
   model: string;
-  sourceImageBase64: string;
+  /** Inline base64 source image (legacy / fallback) */
+  sourceImageBase64?: string;
   svgString: string;
-  mediaType: ImageMediaType;
+  mediaType?: ImageMediaType;
+  /** Supabase Storage path from the secure upload flow */
+  uploadPath?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -32,14 +36,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const { model, sourceImageBase64, svgString, mediaType } = body;
+  const { model, svgString, uploadPath } = body;
+  let { sourceImageBase64, mediaType } = body;
 
-  if (!model || !sourceImageBase64 || !svgString || !mediaType) {
+  if (!model || !svgString) {
     return NextResponse.json(
-      {
-        error:
-          'Missing required fields: model, sourceImageBase64, svgString, mediaType',
-      },
+      { error: 'Missing required fields: model, svgString' },
       { status: 400 },
     );
   }
@@ -47,6 +49,25 @@ export async function POST(request: NextRequest) {
   if (!isAllowedModel(model)) {
     return NextResponse.json(
       { error: `Invalid model. Allowed: ${ALLOWED_MODELS.join(', ')}` },
+      { status: 400 },
+    );
+  }
+
+  // Resolve image data — prefer uploadPath over inline base64
+  if (uploadPath) {
+    try {
+      const upload = await fetchUploadAsBase64(uploadPath, auth.userId);
+      sourceImageBase64 = upload.base64;
+      mediaType = upload.mimeType as ImageMediaType;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to fetch upload';
+      return NextResponse.json({ error: msg }, { status: 400 });
+    }
+  }
+
+  if (!sourceImageBase64 || !mediaType) {
+    return NextResponse.json(
+      { error: 'Provide either uploadPath or sourceImageBase64 + mediaType' },
       { status: 400 },
     );
   }

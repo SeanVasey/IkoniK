@@ -25,6 +25,11 @@ interface ConvertState {
   isOptimizing: boolean;
   error: string | null;
 
+  /** Supabase Storage object path set after a successful upload */
+  uploadPath: string | null;
+  isUploading: boolean;
+  uploadError: string | null;
+
   setSourceFile: (file: File | null) => void;
   setSourcePreview: (preview: string | null) => void;
   setInstantPreview: (svg: string | null) => void;
@@ -35,6 +40,9 @@ interface ConvertState {
   setAnalyzing: (analyzing: boolean) => void;
   setConverting: (converting: boolean) => void;
   setOptimizing: (optimizing: boolean) => void;
+  setUploadPath: (path: string | null) => void;
+  setUploading: (uploading: boolean) => void;
+  setUploadError: (error: string | null) => void;
   reset: () => void;
 }
 
@@ -49,6 +57,9 @@ const initialState = {
   isConverting: false,
   isOptimizing: false,
   error: null,
+  uploadPath: null,
+  isUploading: false,
+  uploadError: null,
 };
 
 export const useConvertStore = create<ConvertState>((set) => ({
@@ -64,5 +75,8 @@ export const useConvertStore = create<ConvertState>((set) => ({
   setAnalyzing: (isAnalyzing) => set({ isAnalyzing }),
   setConverting: (isConverting) => set({ isConverting }),
   setOptimizing: (isOptimizing) => set({ isOptimizing }),
+  setUploadPath: (uploadPath) => set({ uploadPath }),
+  setUploading: (isUploading) => set({ isUploading }),
+  setUploadError: (uploadError) => set({ uploadError }),
   reset: () => set(initialState),
 }));

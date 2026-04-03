@@ -53,6 +53,32 @@ export async function verifyAuth(): Promise<AuthResult> {
 }
 
 /**
+ * Logs a successful file upload to the usage_log table for audit purposes.
+ */
+export async function logUpload(params: {
+  userId: string;
+  objectPath: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  sha256: string;
+}): Promise<void> {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from('usage_log').insert({
+    user_id: params.userId,
+    endpoint: '/api/upload',
+    model: null,
+    input_tokens: null,
+    output_tokens: null,
+  });
+
+  if (error) {
+    // Upload logging is non-critical — silently ignore failures
+  }
+}
+
+/**
  * Logs a Claude API call to the usage_log table.
  */
 export async function logUsage(params: {

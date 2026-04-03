@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { callClaude } from '@/lib/anthropic';
 import { VECTOR_FORGE_SYSTEM_PROMPT } from '@/lib/vectorForge';
 import { verifyAuth, logUsage } from '@/lib/apiAuth';
+import { fetchUploadAsBase64 } from '@/lib/upload/fetchUploadAsBase64';
 import type { Base64ImageSource } from '@anthropic-ai/sdk/resources/messages';
 
 type ImageMediaType = Base64ImageSource['media_type'];
@@ -15,8 +16,11 @@ function isAllowedModel(value: string): value is AllowedModel {
 
 interface ClaudeRequestBody {
   model: string;
-  imageBase64: string;
-  mediaType: ImageMediaType;
+  /** Inline base64 image data (legacy / fallback) */
+  imageBase64?: string;
+  mediaType?: ImageMediaType;
+  /** Supabase Storage path from the secure upload flow */
+  uploadPath?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -32,18 +36,35 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const { model, imageBase64, mediaType } = body;
+  const { model, uploadPath } = body;
+  let { imageBase64, mediaType } = body;
 
-  if (!model || !imageBase64 || !mediaType) {
-    return NextResponse.json(
-      { error: 'Missing required fields: model, imageBase64, mediaType' },
-      { status: 400 },
-    );
+  if (!model) {
+    return NextResponse.json({ error: 'Missing required field: model' }, { status: 400 });
   }
 
   if (!isAllowedModel(model)) {
     return NextResponse.json(
       { error: `Invalid model. Allowed: ${ALLOWED_MODELS.join(', ')}` },
+      { status: 400 },
+    );
+  }
+
+  // Resolve image data — prefer uploadPath over inline base64
+  if (uploadPath) {
+    try {
+      const upload = await fetchUploadAsBase64(uploadPath, auth.userId);
+      imageBase64 = upload.base64;
+      mediaType = upload.mimeType as ImageMediaType;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to fetch upload';
+      return NextResponse.json({ error: msg }, { status: 400 });
+    }
+  }
+
+  if (!imageBase64 || !mediaType) {
+    return NextResponse.json(
+      { error: 'Provide either uploadPath or imageBase64 + mediaType' },
       { status: 400 },
     );
   }

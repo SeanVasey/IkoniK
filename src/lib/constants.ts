@@ -40,3 +40,17 @@ export const ACCEPTED_IMAGE_TYPES: readonly string[] = [
   'image/webp',
   'image/gif',
 ] as const;
+
+/** Supabase Storage bucket for user uploads */
+export const UPLOAD_BUCKET = 'uploads';
+
+/** Maximum upload file size in bytes (10 MB) — hard cap for all modes */
+export const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
+
+/**
+ * Files at or below this size are uploaded via proxy mode (through our API
+ * route) for full pre-storage validation. Larger files use the signed-URL
+ * path with post-upload validation. Set to 4.5 MB to stay within Vercel
+ * Hobby plan body-size limits.
+ */
+export const PROXY_SIZE_LIMIT = 4.5 * 1024 * 1024;
