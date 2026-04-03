@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useConvertStore } from '@/stores/useConvertStore'
+import { uploadFile } from '@/lib/upload/uploadFile'
 
 const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif']
 const MAX_SIZE_BYTES = 10 * 1024 * 1024 // 10 MB
@@ -24,11 +25,21 @@ export function DropZone({ className = '' }: DropZoneProps) {
   const [selectedFileSize, setSelectedFileSize] = useState<number | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const { setSourceFile, setSourcePreview } = useConvertStore()
+  const {
+    setSourceFile,
+    setSourcePreview,
+    setUploadPath,
+    setUploading,
+    setUploadError,
+    isUploading,
+  } = useConvertStore()
+
+  const abortRef = useRef<AbortController | null>(null)
 
   const validateAndProcessFile = useCallback(
     (file: File) => {
       setValidationError(null)
+      setUploadError(null)
 
       if (!ACCEPTED_TYPES.includes(file.type)) {
         setValidationError(
@@ -47,6 +58,7 @@ export function DropZone({ className = '' }: DropZoneProps) {
       setSelectedFileName(file.name)
       setSelectedFileSize(file.size)
 
+      // Generate a local Data URL for preview (kept client-side only)
       const reader = new FileReader()
       reader.onload = (e) => {
         const dataUrl = e.target?.result as string
@@ -57,8 +69,27 @@ export function DropZone({ className = '' }: DropZoneProps) {
         setValidationError('Failed to read the file. Please try again.')
       }
       reader.readAsDataURL(file)
+
+      // Upload to server in parallel (non-blocking for preview)
+      abortRef.current?.abort()
+      const controller = new AbortController()
+      abortRef.current = controller
+
+      setUploading(true)
+      setUploadPath(null)
+
+      uploadFile(file, controller.signal)
+        .then((result) => {
+          setUploadPath(result.path)
+          setUploading(false)
+        })
+        .catch((err) => {
+          if (controller.signal.aborted) return
+          setUploadError(err instanceof Error ? err.message : 'Upload failed')
+          setUploading(false)
+        })
     },
-    [setSourceFile, setSourcePreview]
+    [setSourceFile, setSourcePreview, setUploadPath, setUploading, setUploadError]
   )
 
   const handleDrop = useCallback(
@@ -189,6 +220,16 @@ export function DropZone({ className = '' }: DropZoneProps) {
             <span className="text-xs text-text-tertiary">
               ({formatFileSize(selectedFileSize)})
             </span>
+          </div>
+        )}
+
+        {isUploading && (
+          <div className="mt-4 flex items-center gap-2 rounded-lg bg-accent/10 px-4 py-2 text-sm text-accent">
+            <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            Uploading securely...
           </div>
         )}
 
