@@ -11,7 +11,7 @@ export default function ConvertLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="flex-1 px-4 pt-18 pb-6 md:px-6">{children}</main>
+      <main className="flex-1 px-4 pt-[4.5rem] pb-6 md:px-6">{children}</main>
       <Footer />
     </div>
   )
