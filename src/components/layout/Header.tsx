@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useAppStore } from '@/stores/useAppStore'
 import { ModelSelector } from '@/components/controls/ModelSelector'
+import { createClient } from '@/lib/supabase/client'
 
 interface NavItem {
   href: string
@@ -20,7 +21,14 @@ const navItems: NavItem[] = [
 export { Header }
 export default function Header() {
   const pathname = usePathname()
+  const router = useRouter()
   const { user, toggleSidebar } = useAppStore()
+
+  const handleSignOut = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/auth')
+  }
 
   return (
     <header className="glass fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 md:px-6">
@@ -110,6 +118,7 @@ export default function Header() {
               </span>
               <button
                 type="button"
+                onClick={handleSignOut}
                 className="w-full text-left px-3 py-1.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors"
               >
                 Sign out

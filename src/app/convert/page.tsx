@@ -3,6 +3,7 @@
 import { useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { useConvertStore } from '@/stores/useConvertStore'
+import { useAppStore } from '@/stores/useAppStore'
 import { DropZone } from '@/components/upload/DropZone'
 import { ComparisonView } from '@/components/canvas/ComparisonView'
 import { SourceReport } from '@/components/upload/SourceReport'
@@ -35,11 +36,18 @@ function Spinner() {
   )
 }
 
+/** Map store model option to API model ID */
+const MODEL_MAP: Record<string, string> = {
+  'opus-4.6': 'claude-opus-4-6',
+  'sonnet-4.6': 'claude-sonnet-4-6',
+}
+
 export default function ConvertPage() {
   const {
     sourceFile,
     sourcePreview,
     instantPreview,
+    uploadPath,
     resultSvg,
     analysis,
     metrics,
@@ -55,17 +63,30 @@ export default function ConvertPage() {
     reset,
   } = useConvertStore()
 
+  const selectedModel = useAppStore((s) => s.selectedModel)
+
   const handleAnalyze = useCallback(async () => {
     if (!sourcePreview) return
 
     setAnalyzing(true)
     setError(null)
 
+    const model = MODEL_MAP[selectedModel] ?? 'claude-sonnet-4-6'
+
+    // Extract base64 data and media type from the data URL
+    const match = sourcePreview.match(/^data:(image\/\w+);base64,(.+)$/)
+    const mediaType = match?.[1] ?? 'image/png'
+    const imageBase64 = match?.[2] ?? sourcePreview
+
     try {
       const response = await fetch('/api/claude', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: sourcePreview }),
+        body: JSON.stringify(
+          uploadPath
+            ? { model, uploadPath }
+            : { model, imageBase64, mediaType }
+        ),
       })
 
       if (!response.ok) {
@@ -73,31 +94,56 @@ export default function ConvertPage() {
         throw new Error(data.error ?? 'Analysis failed')
       }
 
-      const data = (await response.json()) as {
+      const data = (await response.json()) as { analysis: string }
+
+      // The API returns raw JSON text from Claude — parse it
+      let parsed: {
         analysis: string
         engine: string
         strategy: string
         expectedFidelity: string
       }
-      setAnalysis(data)
+      try {
+        parsed = JSON.parse(data.analysis)
+      } catch {
+        // If Claude returned non-JSON, use the text as-is
+        parsed = {
+          analysis: data.analysis,
+          engine: 'unknown',
+          strategy: 'auto',
+          expectedFidelity: 'interpretation',
+        }
+      }
+
+      setAnalysis(parsed)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Analysis failed')
     } finally {
       setAnalyzing(false)
     }
-  }, [sourcePreview, setAnalyzing, setError, setAnalysis])
+  }, [sourcePreview, uploadPath, selectedModel, setAnalyzing, setError, setAnalysis])
 
   const handleConvert = useCallback(async () => {
-    if (!sourcePreview) return
+    if (!sourcePreview || !analysis) return
 
     setConverting(true)
     setError(null)
+
+    const model = MODEL_MAP[selectedModel] ?? 'claude-sonnet-4-6'
+
+    // Extract base64 from the data URL
+    const match = sourcePreview.match(/^data:(image\/\w+);base64,(.+)$/)
+    const imageBase64 = match?.[2] ?? sourcePreview
 
     try {
       const response = await fetch('/api/convert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: sourcePreview, analysis }),
+        body: JSON.stringify({
+          model,
+          imageBase64,
+          analysis: JSON.stringify(analysis),
+        }),
       })
 
       if (!response.ok) {
@@ -107,18 +153,27 @@ export default function ConvertPage() {
 
       const data = (await response.json()) as {
         svg: string
-        metrics?: { psnr: number; ssim: number; fidelityLabel: string }
+        analysis?: string
       }
-      setResultSvg(data.svg)
-      if (data.metrics) {
-        setMetrics(data.metrics)
+
+      // The SVG may be returned inside a JSON wrapper from Claude
+      let svg = data.svg
+      if (svg.startsWith('{')) {
+        try {
+          const parsed = JSON.parse(svg)
+          svg = parsed.svg ?? svg
+        } catch {
+          // Use as-is
+        }
       }
+
+      setResultSvg(svg)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Conversion failed')
     } finally {
       setConverting(false)
     }
-  }, [sourcePreview, analysis, setConverting, setError, setResultSvg, setMetrics])
+  }, [sourcePreview, analysis, selectedModel, setConverting, setError, setResultSvg])
 
   const handleDownloadSvg = useCallback(() => {
     if (!resultSvg) return
