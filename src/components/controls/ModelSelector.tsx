@@ -11,7 +11,7 @@ const models: {
   name: string
   description: string
 }[] = [
-  { id: 'opus-4.6', name: 'Opus 4.6', description: 'Most capable' },
+  { id: 'opus-4.7', name: 'Opus 4.7', description: 'Most capable' },
   { id: 'sonnet-4.6', name: 'Sonnet 4.6', description: 'Fast & efficient' },
 ]
 

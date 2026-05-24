@@ -34,7 +34,7 @@ Transform raster images into production-ready SVG vector graphics using Claude A
 - Automatic shape, colour, gradient, and complexity detection
 - Engine recommendation (potrace for line art, vtracer for photographic content)
 - Fidelity self-assessment: exact trace, faithful recreation, or interpretation
-- Model selector: choose between Claude Opus 4.6 (most capable) or Sonnet 4.6 (fast)
+- Model selector: choose between Claude Opus 4.7 (most capable, adaptive thinking) or Sonnet 4.6 (fast)
 
 ### Secure Upload Pipeline
 - Hybrid upload: proxy mode for files under 4.5 MB, signed-URL for larger files

@@ -13,6 +13,59 @@ You are operating as a **senior staff engineer + product-minded UX lead** inside
 
 -----
 
+## Thinking & Planning Discipline
+
+You are running on **Claude Opus 4.7** with adaptive thinking. Use it.
+
+- **Default to Plan mode** (`Shift+Tab Shift+Tab` in the CLI) for any change that touches more than one file, an API route under `src/app/api/`, auth or RLS, the upload pipeline (`src/lib/upload/*`, `src/app/api/upload/`), or model wiring. Trivial typo or copy fixes may skip it.
+- For architectural decisions, include the keyword **`ultrathink`** in your prompt and pin `effortLevel: "xhigh"` for Opus 4.7 sessions in `.claude/settings.json`. Save `medium` for short refactors and `low` for status checks.
+- Read `tasks/lessons.md` at session start. Append a new entry after any non-trivial debugging session — what failed, what fixed it, what to check next time.
+- Write the plan to a file before execution on multi-step work. The plan is the contract; the diff is the proof.
+- Run **`/verify`** (or the project's `verify-ikonik` skill) before declaring any task done. Type-checks and unit tests prove code is *correct*; `/verify` proves the *feature works*. They are not interchangeable.
+
+-----
+
+## Claude Code Agents & Skills
+
+This repo benefits from delegation. Don't carry every search and every workflow in the main thread.
+
+### Built-in subagents — when to delegate
+
+- **`Explore`** — read-only codebase search. Use for any "where is X defined / which files reference Y" question that might span >3 files. Spin up to 3 in parallel for broad surveys ("find all magic-byte validation sites", "find all places that read `ALLOWED_MODELS`"). Use **one** for a targeted lookup.
+- **`Plan`** — design before implementation. Use when the change spans the upload pipeline, auth, RLS, or AI routing — anywhere a bad assumption costs hours.
+- **`general-purpose`** — multi-step research that needs writing/editing privileges along the way (rare; prefer Explore unless edits are required).
+- **`code-reviewer`** — second-opinion review of risky diffs (auth, RLS policy changes, payment, model bumps with cost implications).
+
+Lead agent coordinates; subagents inherit this CLAUDE.md.
+
+### Built-in skills — when to invoke
+
+- **`/verify`** — run the app and confirm the change actually works. Required before declaring done.
+- **`/code-review`** — review the current diff for correctness bugs. Run at `--effort high` before any auth/RLS/upload-pipeline PR.
+- **`/security-review`** — full audit of pending changes. **Required** before any PR that touches auth, RLS, upload, file validation, or webhook handling.
+- **`/run`** — launch the app to see a change working in-browser.
+- **`/debug`** — focused debugging session for a single failure.
+- **`/init`** — regenerate CLAUDE.md scaffolding if the project structure shifts significantly.
+
+### Project skills (`.claude/skills/<name>/SKILL.md`)
+
+Author one when a multi-step workflow recurs. Frontmatter fields: `description` (mandatory, plain text), `allowed-tools` (array, narrow), `effort` (low/medium/high/xhigh — overrides session default for this skill), `model` (override), `agent` (e.g. `Explore` for read-only). Currently shipped:
+
+- **`verify-ikonik`** — the project verification gate (install if needed, lint, typecheck, test, build).
+- **`bump-claude-model`** — walks the capable-tier model upgrade across the five files that hard-code the model ID.
+
+### Project agents (`.claude/agents/<name>.md`)
+
+Author one when a recurring side task generates large context the main thread shouldn't carry. Frontmatter: `name`, `description` (include "use proactively" when relevant), `model`, `tools` (narrow), `skills` (auto-invoke list). Currently shipped:
+
+- **`svg-pipeline-reviewer`** — proactive review of diffs touching the upload/convert/optimize/export pipeline.
+
+### Slash commands (`.claude/commands/<name>.md`)
+
+Single-action shortcuts. Use frontmatter `argument-hint` and `allowed-tools`. Author one when you find yourself typing the same instruction twice.
+
+-----
+
 ## Standards
 
 ### Accessibility
@@ -86,11 +139,48 @@ Responsive. Polished empty/loading/error states. Consistent patterns. Sensible c
 
 ## Verification
 
-Run **before every commit**: format/lint → typecheck → unit tests → integration/e2e → build.
+The project gate. Run **before every commit**:
+
+```bash
+npm run lint && npm run typecheck && npm test && npm run build
+```
+
+All four must exit 0. Equivalent skill: **`verify-ikonik`** (handles `npm install` first when `node_modules/` is missing).
+
+For end-to-end behavioral confirmation — "does this feature *work*?" — use **`/verify`** to launch the app and exercise the change in a browser.
 
 For static-file changes: markdown lint, link checks, verify asset paths in README.
 
-If tests don't exist, add smoke tests. If tooling isn't available, document what should run and add CI config.
+If a test gap surfaces, add a smoke test. If tooling is missing, document what should run and add CI config.
+
+-----
+
+## Model Configuration
+
+**Capable tier:** `claude-opus-4-7` (adaptive thinking — control effort via prompt keywords (`ultrathink`) or `effortLevel`).
+**Fast tier:** `claude-sonnet-4-6` (lower latency, high quality for routine work).
+
+Both IDs live in **one source of truth**: `src/lib/constants.ts:MODELS`. They are mirrored in three API routes for server-side validation:
+
+- `src/app/api/claude/route.ts` — `ALLOWED_MODELS`
+- `src/app/api/convert/route.ts` — `ALLOWED_MODELS`
+- `src/app/api/review/route.ts` — `ALLOWED_MODELS`
+
+…and surfaced in the UI mapping at `src/app/convert/page.tsx:MODEL_MAP`.
+
+### Bump policy
+
+When upgrading a tier:
+
+1. Update all five files in a single commit. Use the `bump-claude-model` skill — it walks the file list.
+2. Update the README model description (currently around line 37).
+3. Update `tests/constants.test.ts` if the assertions reference a specific ID.
+4. Run the full verify gate.
+5. Add an ADR in `docs/decisions/` if cost or behavior shifts materially.
+
+### Cost guard
+
+API routes already enforce a server-side allowlist via `ALLOWED_MODELS`. **Never** accept a client-supplied model string without re-checking against `ALLOWED_MODELS`. The route's own const list — not the client's — is the security boundary.
 
 -----
 
@@ -133,9 +223,11 @@ project-root/
 │
 ├── .claude/
 │   ├── settings.json
+│   ├── agents/              # Project-specific subagent definitions
 │   ├── commands/            # Custom slash commands
 │   ├── hooks/               # Pre/post action hooks
-│   └── skills/              # Reusable SKILL.md workflows
+│   └── skills/
+│       └── <name>/SKILL.md  # Reusable workflows
 │
 ├── .github/workflows/       # ci.yml + deploy.yml
 │
@@ -205,7 +297,7 @@ The README is the product's public face. Present it like a polished marketing pa
 
 ## Workflow Orchestration
 
-**Subagents:** For complex multi-file tasks, delegate via Task tool. Lead agent coordinates; subagents inherit this CLAUDE.md.
+**Subagents:** See "Claude Code Agents & Skills" above — that section is the source of truth. In short: for complex multi-file tasks, delegate via the Agent tool. Lead agent coordinates; subagents inherit this CLAUDE.md.
 
 **Self-improvement:** Append lessons to `tasks/lessons.md` after non-trivial debugging. Track deferred work in `tasks/todo.md` with issue links. Review lessons at session start.
 
