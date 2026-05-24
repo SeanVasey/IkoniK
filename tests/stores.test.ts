@@ -67,13 +67,13 @@ describe('useAppStore', () => {
     useAppStore.setState({
       user: null,
       isLoading: true,
-      selectedModel: 'opus-4.6',
+      selectedModel: 'opus-4.7',
       sidebarOpen: true,
     })
   })
 
   it('has correct default model', () => {
-    expect(useAppStore.getState().selectedModel).toBe('opus-4.6')
+    expect(useAppStore.getState().selectedModel).toBe('opus-4.7')
   })
 
   it('switches model', () => {

@@ -38,7 +38,7 @@ function Spinner() {
 
 /** Map store model option to API model ID */
 const MODEL_MAP: Record<string, string> = {
-  'opus-4.6': 'claude-opus-4-6',
+  'opus-4.7': 'claude-opus-4-7',
   'sonnet-4.6': 'claude-sonnet-4-6',
 }
 

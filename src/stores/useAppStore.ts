@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type ModelOption = 'opus-4.6' | 'sonnet-4.6';
+export type ModelOption = 'opus-4.7' | 'sonnet-4.6';
 
 interface User {
   id: string;
@@ -27,7 +27,7 @@ interface AppState {
 export const useAppStore = create<AppState>((set) => ({
   user: null,
   isLoading: true,
-  selectedModel: 'opus-4.6',
+  selectedModel: 'opus-4.7',
   sidebarOpen: true,
 
   setUser: (user) => set({ user }),

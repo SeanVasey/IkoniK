@@ -12,9 +12,9 @@ export const BRAND = 'VASEY/AI' as const;
 /** Available Claude models for vector generation */
 export const MODELS: readonly ClaudeModel[] = [
   {
-    id: 'claude-opus-4-6',
-    name: 'Opus 4.6',
-    description: 'Most capable',
+    id: 'claude-opus-4-7',
+    name: 'Opus 4.7',
+    description: 'Most capable, adaptive thinking',
   },
   {
     id: 'claude-sonnet-4-6',
