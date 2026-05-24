@@ -14,4 +14,3 @@ Deferred work items tracked here. Link to GitHub issues when available.
 - [ ] Add admin dashboard analytics (per-user usage trends, cost attribution)
 - [ ] Re-baseline Anthropic token cost dashboard against Opus 4.7 (re-run `count_tokens()` on representative uploads — see ADR 0001)
 - [ ] Wire `npm audit --omit=dev --audit-level=high` into CI as a hard gate (currently informational)
-- [ ] **Fix pre-existing `npm run build` failure** — Next.js 14.2.21 falls back to the legacy Pages Router for `/404` and `/500` prerender (error: *"<Html> should not be imported outside of pages/_document"*). Standard App Router fix: add `src/app/not-found.tsx` and `src/app/global-error.tsx` so Next.js uses the App Router fallbacks instead of the broken Pages Router shim. Reproduces on `main` at commit `745df64` — not introduced by any in-flight work.

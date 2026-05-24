@@ -31,9 +31,6 @@
       "Bash(rm -rf *)"
     ]
   },
-  "env": {
-    "NODE_ENV": "development"
-  },
   "hooks": {
     "SessionStart": [
       {

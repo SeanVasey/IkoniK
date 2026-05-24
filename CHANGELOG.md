@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.claude/skills/bump-claude-model/SKILL.md` — walks the capable-tier model upgrade across all eight call sites (constants, three API allowlists, UI MODEL_MAP, store type, selector label, README).
 - `.claude/agents/svg-pipeline-reviewer.md` — proactive review of diffs touching the upload / convert / optimize / export pipeline.
 - `docs/decisions/0001-bump-opus-to-4-7.md` — ADR documenting the capable-tier model bump and why a pure ID swap is safe for IkoniK's request shape.
+- `src/app/not-found.tsx`, `src/app/error.tsx`, `src/app/global-error.tsx` — branded App Router fallbacks for 404, segment errors, and root errors (replaces Next.js's default unstyled pages).
 
 ### Changed
 
@@ -22,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `docs/architecture.md` — replaced "tech stack TBD" placeholder with the actual stack and added a convert-pipeline data-flow diagram.
 - `docs/runbooks/deploy.md` — filled in the Vercel-specific deployment + emergency rollback procedures (previously placeholder).
 - `tasks/todo.md` — pruned items already shipped; added PWA icon suite generation as the priority backlog item.
+- **`next` and `eslint-config-next` bumped 14.2.21 → 14.2.35** (latest patch in the 14.2.x line, minor-safe).
 
 ### Initial setup (pre-Unreleased)
 
