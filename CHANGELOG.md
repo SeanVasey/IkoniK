@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `docs/architecture.md` — replaced "tech stack TBD" placeholder with the actual stack and added a convert-pipeline data-flow diagram.
 - `docs/runbooks/deploy.md` — filled in the Vercel-specific deployment + emergency rollback procedures (previously placeholder).
 - `tasks/todo.md` — pruned items already shipped; added PWA icon suite generation as the priority backlog item.
-- **`next` and `eslint-config-next` bumped 14.2.21 → 14.2.35** (latest patch in the 14.2.x line, minor-safe).
+- **`next` and `eslint-config-next` bumped 14.2.35 → 15.5.18** to clear four high-severity Next.js advisories (DoS via Image Optimizer, request-smuggling in rewrites, RSC cache poisoning, App Router XSS) that were failing CI's `npm audit --audit-level=high` gate. React stays on 18.3; the codebase was already on the async `cookies()` API, so no app-code changes were required. `tsconfig.json` gains `"target": "ES2017"` (Next 15 default). Verified green: lint, typecheck, 22 tests, production build.
 
 ### Initial setup (pre-Unreleased)
 

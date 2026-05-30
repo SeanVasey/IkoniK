@@ -58,7 +58,7 @@ Transform raster images into production-ready SVG vector graphics using Claude A
 
 | Layer | Technology |
 |-------|-----------|
-| Framework | [Next.js 14](https://nextjs.org) (App Router) |
+| Framework | [Next.js 15](https://nextjs.org) (App Router) |
 | Language | [TypeScript 5.6](https://www.typescriptlang.org) (strict mode) |
 | Styling | [Tailwind CSS 3.4](https://tailwindcss.com) + custom glassmorphism design system |
 | AI | [Claude API](https://docs.anthropic.com) via `@anthropic-ai/sdk` |
