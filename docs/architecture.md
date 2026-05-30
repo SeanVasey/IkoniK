@@ -8,7 +8,7 @@ IkoniK is a Claude-powered vector graphics studio. Today it focuses on raster â†
 
 | Layer | Choice |
 |---|---|
-| Framework | Next.js 14 (App Router, edge-aware) |
+| Framework | Next.js 15 (App Router, edge-aware) |
 | Language | TypeScript 5.6, strict mode |
 | Styling | Tailwind CSS 3.4 + custom glassmorphism design tokens |
 | AI | Anthropic SDK (`@anthropic-ai/sdk`) â€” Opus 4.7 (capable tier) / Sonnet 4.6 (fast tier) |
