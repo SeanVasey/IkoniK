@@ -11,7 +11,7 @@ Transform raster images into production-ready SVG vector graphics using Claude A
 
 [![CI](https://github.com/SeanVasey/IkoniK/actions/workflows/ci.yml/badge.svg)](https://github.com/SeanVasey/IkoniK/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
-[![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)](https://nextjs.org)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Powered by Claude](https://img.shields.io/badge/Powered_by-Claude_AI-7C5CFC)](https://anthropic.com)
