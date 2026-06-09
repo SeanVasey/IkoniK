@@ -66,6 +66,19 @@ export default function AuthPage() {
           borderColor: 'rgba(255, 255, 255, 0.08)',
         }}
       >
+        {/* App icon — brand mark for the VASEY/AI series splash */}
+        <div className="mb-6 flex justify-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/icons/icon.svg"
+            alt="IkoniK app icon"
+            width={104}
+            height={104}
+            className="drop-shadow-[0_0_32px_rgba(124,92,252,0.45)]"
+            style={{ height: 104, width: 104 }}
+          />
+        </div>
+
         <p
           className="mb-2 text-xs font-medium uppercase tracking-[0.3em]"
           style={{ color: '#8A94A0' }}
