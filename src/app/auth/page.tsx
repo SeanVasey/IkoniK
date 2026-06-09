@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Provider } from '@supabase/supabase-js';
 
@@ -25,27 +26,60 @@ const providers: { name: string; id: Provider; icon: React.ReactNode }[] = [
       </svg>
     ),
   },
-  {
-    name: 'Microsoft',
-    id: 'azure' as Provider,
-    icon: (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
-        <path d="M2 2h9.5v9.5H2V2zm10.5 0H22v9.5h-9.5V2zM2 12.5h9.5V22H2v-9.5zm10.5 0H22V22h-9.5v-9.5z" />
-      </svg>
-    ),
-  },
 ];
+
+type Notice = { kind: 'error' | 'success'; text: string } | null;
 
 export default function AuthPage() {
   const supabase = createClient();
 
+  const [email, setEmail] = useState('');
+  const [sending, setSending] = useState(false);
+  const [notice, setNotice] = useState<Notice>(null);
+
   const handleSignIn = async (provider: Provider) => {
-    await supabase.auth.signInWithOAuth({
+    setNotice(null);
+    const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo: window.location.origin + '/auth/callback',
       },
     });
+
+    if (error) {
+      setNotice({
+        kind: 'error',
+        text:
+          error.message ||
+          'That provider isn’t enabled yet. Try the email option below.',
+      });
+    }
+  };
+
+  const handleEmailSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = email.trim();
+    if (!trimmed) return;
+
+    setSending(true);
+    setNotice(null);
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email: trimmed,
+      options: {
+        emailRedirectTo: window.location.origin + '/auth/callback',
+      },
+    });
+
+    setSending(false);
+    setNotice(
+      error
+        ? { kind: 'error', text: error.message }
+        : {
+            kind: 'success',
+            text: `Magic link sent to ${trimmed}. Check your inbox to finish signing in.`,
+          },
+    );
   };
 
   return (
@@ -115,6 +149,55 @@ export default function AuthPage() {
             </button>
           ))}
         </div>
+
+        {/* Divider */}
+        <div className="my-6 flex items-center gap-3">
+          <span className="h-px flex-1" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }} />
+          <span className="text-xs uppercase tracking-wider" style={{ color: '#8A94A0' }}>
+            or
+          </span>
+          <span className="h-px flex-1" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }} />
+        </div>
+
+        {/* Email magic-link sign-in */}
+        <form onSubmit={handleEmailSignIn} className="space-y-3">
+          <label htmlFor="email" className="sr-only">
+            Email address
+          </label>
+          <input
+            id="email"
+            type="email"
+            required
+            autoComplete="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full rounded-lg border px-4 py-3 text-sm outline-none transition-colors focus:border-accent"
+            style={{
+              backgroundColor: 'rgba(30, 38, 48, 0.6)',
+              borderColor: 'rgba(255, 255, 255, 0.08)',
+              color: '#F0F2F5',
+            }}
+          />
+          <button
+            type="submit"
+            disabled={sending}
+            className="w-full rounded-lg px-4 py-3 text-sm font-medium transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+            style={{ backgroundColor: '#7C5CFC', color: '#FFFFFF' }}
+          >
+            {sending ? 'Sending…' : 'Continue with email'}
+          </button>
+        </form>
+
+        {notice && (
+          <p
+            role={notice.kind === 'error' ? 'alert' : 'status'}
+            className="mt-4 text-sm"
+            style={{ color: notice.kind === 'error' ? '#FF5C45' : '#3ECF8E' }}
+          >
+            {notice.text}
+          </p>
+        )}
       </div>
     </div>
   );

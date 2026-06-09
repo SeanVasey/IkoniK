@@ -100,7 +100,7 @@ Copy `.env.example` to `.env.local` and fill in the values:
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public | Supabase anonymous/public key (safe for client — RLS enforces security) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server only | Supabase service role key (bypasses RLS — never expose to client) |
 
-> OAuth provider secrets (Google, GitHub, Microsoft) are configured in the **Supabase Dashboard** under Authentication > Providers, not in `.env.local`.
+> Sign-in supports **GitHub** and **Google** OAuth plus passwordless **email magic links**. OAuth provider secrets are configured in the **Supabase Dashboard** under Authentication > Providers, not in `.env.local`; email magic links work with no provider setup.
 
 ### Development
 
