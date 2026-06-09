@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **IkoniK app icon + full PWA/favicon asset suite.** `public/icons/icon.svg` is the canonical source; `scripts/generate-icons.mjs` (`npm run icons:generate`) renders every transparent-background raster with Sharp — `icon-{1024,512,384,192,144,96}.png`, `apple-touch-icon{,-180,-167,-152,-120}.png`, `favicon-{32,16}.png`, and a multi-size `favicon.ico` (16/32/48) at the `public/` root. The icon anchors the `/auth` front-page splash and the README hero.
 - `.github/workflows/ci.yml` — `secret-scan` job (gitleaks) to catch committed credentials, a least-privilege `permissions: contents: read` block (the default `GITHUB_TOKEN` was implicitly read/write), and run `concurrency` cancellation for superseded runs.
 - `.claude/settings.json` — permissions allowlist for read-only and verify-gate commands, plus a `SessionStart` hook that runs `npm install` when `node_modules/` is missing.
 - `.claude/skills/verify-ikonik/SKILL.md` — the project verification gate (install if needed, lint, typecheck, test, build).
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `docs/architecture.md` — replaced "tech stack TBD" placeholder with the actual stack and added a convert-pipeline data-flow diagram.
 - `docs/runbooks/deploy.md` — filled in the Vercel-specific deployment + emergency rollback procedures (previously placeholder).
 - `tasks/todo.md` — pruned items already shipped; added PWA icon suite generation as the priority backlog item.
+- `src/app/layout.tsx` — expanded icon metadata: SVG + favicon variants for browsers and the full Apple touch set (180/167/152/120) so the iOS standalone PWA renders the icon on the Home Screen. `manifest.json` icon entries (`any` + `maskable`) now resolve to real files.
 - **`next` and `eslint-config-next` bumped 14.2.35 → 15.5.18** to clear four high-severity Next.js advisories (DoS via Image Optimizer, request-smuggling in rewrites, RSC cache poisoning, App Router XSS) that were failing CI's `npm audit --audit-level=high` gate. React stays on 18.3; the codebase was already on the async `cookies()` API, so no app-code changes were required. `tsconfig.json` gains `"target": "ES2017"` (Next 15 default). Verified green: lint, typecheck, 22 tests, production build.
 - In-range dependency refresh via `npm update` (`next` 15.5.18 → 15.5.19, `autoprefixer` 10.4 → 10.5, `@vitejs/plugin-react`, `vitest`, et al.) — all semver-compatible; lint, typecheck, 22 tests, and build stay green.
 

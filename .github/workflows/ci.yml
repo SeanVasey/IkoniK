@@ -63,3 +63,7 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Free for personal repos; org-owned repos require a license key.
+          # Unset on personal accounts (resolves to empty) — add the secret if
+          # this repo is ever transferred to an organization.
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
