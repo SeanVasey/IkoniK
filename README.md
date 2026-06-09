@@ -1,7 +1,6 @@
 <div align="center">
 
-<!-- App icon placeholder — replace with /public/icons/icon-192.png once generated from master SVG -->
-<img src="https://img.shields.io/badge/IkoniK-7C5CFC?style=for-the-badge&logoColor=white" alt="IkoniK logo" height="48" />
+<img src="./public/icons/icon-192.png" alt="IkoniK app icon — a violet squircle with a graph grid, a glowing pink-to-cyan node spline, and the IkoniK wordmark" width="120" height="120" />
 
 # IkoniK
 
