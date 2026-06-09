@@ -14,8 +14,18 @@ export const metadata: Metadata = {
     title: 'IkoniK',
   },
   icons: {
-    icon: '/favicon.ico',
-    apple: '/icons/apple-touch-icon.png',
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icons/favicon-32.png', type: 'image/png', sizes: '32x32' },
+      { url: '/icons/favicon-16.png', type: 'image/png', sizes: '16x16' },
+      { url: '/icons/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: [
+      { url: '/icons/apple-touch-icon.png', sizes: '180x180' },
+      { url: '/icons/apple-touch-icon-167.png', sizes: '167x167' },
+      { url: '/icons/apple-touch-icon-152.png', sizes: '152x152' },
+      { url: '/icons/apple-touch-icon-120.png', sizes: '120x120' },
+    ],
   },
 }
 
