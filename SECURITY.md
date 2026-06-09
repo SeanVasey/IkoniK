@@ -35,5 +35,6 @@ This project follows the security standards documented in [CLAUDE.md](./CLAUDE.m
 - Parameterized queries for all database operations
 - Input validation by file signature, not extension
 - Rate limiting on all API endpoints
-- No secrets in version control
-- `npm audit` in CI pipeline
+- No secrets in version control — enforced by gitleaks secret scanning in CI
+- `npm audit` (fail on high/critical) in CI, plus Dependabot alerts for moderate transitive advisories
+- Transitive vulnerabilities pinned to patched versions via npm `overrides`
