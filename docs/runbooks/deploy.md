@@ -39,6 +39,13 @@ Merges to `main` trigger a production deploy automatically. There is no manual p
 
 OAuth provider secrets (Google, GitHub, Microsoft) are configured in the Supabase Dashboard, not in Vercel.
 
+> **First-time setup / blank 500 on every page?** The most common cause is the
+> Supabase–Vercel integration injecting `SUPABASE_URL` / `SUPABASE_ANON_KEY`
+> instead of the `NEXT_PUBLIC_`-prefixed names this app requires — and env vars
+> added after the last deploy need a redeploy to take effect. Full walkthrough
+> (env vars, schema migration, OAuth, first-admin bootstrap):
+> [`supabase-setup.md`](./supabase-setup.md).
+
 ### Build-time considerations
 
 `npm run build` requires the public env vars (`NEXT_PUBLIC_*`) to be present at build time — Next.js inlines them into static pages. The server-only vars (`ANTHROPIC_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) are read at runtime and **must be present in the Vercel runtime environment**, but the build itself will succeed without them.
