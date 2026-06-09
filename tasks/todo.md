@@ -13,4 +13,7 @@ Deferred work items tracked here. Link to GitHub issues when available.
 - [ ] Implement design mode (vector-from-prompt)
 - [ ] Add admin dashboard analytics (per-user usage trends, cost attribution)
 - [ ] Re-baseline Anthropic token cost dashboard against Opus 4.7 (re-run `count_tokens()` on representative uploads — see ADR 0001)
-- [ ] Wire `npm audit --omit=dev --audit-level=high` into CI as a hard gate (currently informational)
+
+## Done
+
+- [x] `npm audit --audit-level=high` enforced as a hard CI gate (fails the build); gitleaks secret scanning added alongside it, plus least-privilege `GITHUB_TOKEN` permissions.
