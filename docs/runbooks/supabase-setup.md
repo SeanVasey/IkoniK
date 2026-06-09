@@ -54,17 +54,38 @@ supabase db push
 **Option B — Dashboard:** open SQL Editor, paste the migration file, and Run.
 It's re-runnable, so applying it twice is safe.
 
-## 3. Configure OAuth providers
+## 3. Configure sign-in methods
 
-IkoniK signs in with Google, GitHub, and Microsoft (Azure). In the Supabase
-Dashboard → **Authentication → Providers**, enable each and paste its client
-ID/secret. Then under **Authentication → URL Configuration** set:
+IkoniK supports three sign-in methods: **GitHub** OAuth, **Google** OAuth, and
+passwordless **email magic links**. Email is enabled by default in Supabase and
+needs no setup; the two OAuth providers each require a client ID/secret.
+
+First, under **Authentication → URL Configuration** set:
 
 - **Site URL:** `https://<your-app>.vercel.app`
 - **Redirect URLs:** add `https://<your-app>.vercel.app/auth/callback`
   (and `http://localhost:3000/auth/callback` for local dev).
 
-OAuth secrets live in Supabase, **not** Vercel.
+Then, for each OAuth provider, it's a two-way handshake — register Supabase's
+callback URL in the provider console, then paste the provider's credentials back
+into Supabase. **Supabase callback URL** (the same for both):
+
+```
+https://<your-project-ref>.supabase.co/auth/v1/callback
+```
+
+**GitHub** — GitHub → *Settings → Developer settings → OAuth Apps → New OAuth App*:
+set **Homepage URL** to your app URL and **Authorization callback URL** to the
+Supabase callback above. Copy the Client ID + generated secret into **Supabase →
+Authentication → Providers → GitHub** and Save.
+
+**Google** — *Google Cloud Console → APIs & Services → Credentials → OAuth client
+ID* (Web application). Add the Supabase callback above to **Authorized redirect
+URIs**. Copy the Client ID + secret into **Supabase → Authentication → Providers
+→ Google** and Save.
+
+A provider stays inactive until **both** its ID and secret are saved. OAuth
+secrets live in Supabase, **not** Vercel.
 
 ## 4. Approve yourself + grant admin
 

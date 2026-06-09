@@ -37,7 +37,7 @@ Merges to `main` trigger a production deploy automatically. There is no manual p
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public | RLS enforces row-level security; this key is safe to expose |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server only | **Bypasses RLS** — never expose to the client |
 
-OAuth provider secrets (Google, GitHub, Microsoft) are configured in the Supabase Dashboard, not in Vercel.
+OAuth provider secrets (GitHub, Google) are configured in the Supabase Dashboard, not in Vercel. Email magic-link sign-in needs no provider secrets.
 
 > **First-time setup / blank 500 on every page?** The most common cause is the
 > Supabase–Vercel integration injecting `SUPABASE_URL` / `SUPABASE_ANON_KEY`

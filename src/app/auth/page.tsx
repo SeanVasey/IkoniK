@@ -26,15 +26,6 @@ const providers: { name: string; id: Provider; icon: React.ReactNode }[] = [
       </svg>
     ),
   },
-  {
-    name: 'Microsoft',
-    id: 'azure' as Provider,
-    icon: (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
-        <path d="M2 2h9.5v9.5H2V2zm10.5 0H22v9.5h-9.5V2zM2 12.5h9.5V22H2v-9.5zm10.5 0H22V22h-9.5v-9.5z" />
-      </svg>
-    ),
-  },
 ];
 
 type Notice = { kind: 'error' | 'success'; text: string } | null;
