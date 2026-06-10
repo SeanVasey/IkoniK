@@ -6,12 +6,29 @@ interface ConversionMetrics {
   fidelityLabel: string;
 }
 
+interface AnalysisLayer {
+  name: string;
+  color: string;
+  order: number;
+}
+
+interface AnalysisPreprocessing {
+  sharpen: boolean;
+  threshold: boolean;
+  trimPadding: number;
+}
+
 interface ConversionAnalysis {
   analysis: string;
   engine: string;
   strategy: string;
   expectedFidelity: string;
+  preprocessing?: AnalysisPreprocessing;
+  layers?: AnalysisLayer[];
+  warnings?: string[];
 }
+
+export type { ConversionAnalysis, AnalysisLayer, AnalysisPreprocessing };
 
 interface ConvertState {
   sourceFile: File | null;

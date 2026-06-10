@@ -3,7 +3,7 @@ import { callClaude } from '@/lib/anthropic';
 import { VECTOR_FORGE_SYSTEM_PROMPT } from '@/lib/vectorForge';
 import { verifyAuth, logUsage } from '@/lib/apiAuth';
 
-const ALLOWED_MODELS = ['claude-opus-4-7', 'claude-sonnet-4-6'] as const;
+const ALLOWED_MODELS = ['claude-fable-5', 'claude-opus-4-8', 'claude-sonnet-4-6'] as const;
 
 function isAllowedModel(value: string): value is (typeof ALLOWED_MODELS)[number] {
   return (ALLOWED_MODELS as readonly string[]).includes(value);

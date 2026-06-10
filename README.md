@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./public/icons/icon-192.png" alt="IkoniK app icon — a violet squircle with a graph grid, a glowing pink-to-cyan node spline, and the IkoniK wordmark" width="120" height="120" />
+<img src="./public/icons/icon-192.png" alt="IkoniK app icon — an IK monogram with grid texture and a blue-to-magenta gradient" width="120" height="120" />
 
 # IkoniK
 
@@ -27,13 +27,15 @@ Transform raster images into production-ready SVG vector graphics using Claude A
 - Claude AI analyses the image and recommends an optimal tracing strategy
 - Generates production-quality SVG with proper viewBox, grouped layers, and minimal path count
 - Side-by-side comparison view with zoom controls and background toggle
-- Download results as SVG or PNG
+- Live pipeline progress bar tracking each stage: upload → analyze → convert
+- One-click downloads: SVG, PNG, or copy the SVG markup to the clipboard
 
 ### AI-Powered Analysis
 - Automatic shape, colour, gradient, and complexity detection
 - Engine recommendation (potrace for line art, vtracer for photographic content)
 - Fidelity self-assessment: exact trace, faithful recreation, or interpretation
-- Model selector: choose between Claude Opus 4.7 (most capable, adaptive thinking) or Sonnet 4.6 (fast)
+- Detailed analysis report: image description, engine choice, strategy, recommended preprocessing, detected layers, and warnings
+- Model selector: choose between Claude Fable 5 (most intelligent — new top tier), Opus 4.8 (most capable Opus, adaptive thinking), or Sonnet 4.6 (fast)
 
 ### Secure Upload Pipeline
 - Hybrid upload: proxy mode for files under 4.5 MB, signed-URL for larger files
