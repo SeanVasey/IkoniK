@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **App icon replaced with the IK monogram.** `public/icons/icon.svg` (source of truth) is now the IK letterform mark with grid texture and a blue-to-magenta gradient; the full PWA/favicon suite (13 PNGs + multi-size `favicon.ico`) regenerated via `npm run icons:generate`, all preserving the transparent background required for iOS adaptive light/dark Home Screen tinting (verified: alpha channel present, corner pixels fully transparent). README hero alt text updated to match.
 - **Capable-tier model bumped from `claude-opus-4-7` to `claude-opus-4-8`** across the eight call sites (constants, three API allowlists, MODEL_MAP, store type + default, ModelSelector, README). Opus 4.8 keeps the same API surface and pricing as 4.7, so this is a pure ID swap. See ADR 0002.
 - **Sign-in methods limited to GitHub, Google, and email magic links.** Removed the Microsoft (Azure) OAuth button from `src/app/auth/page.tsx` and updated the README and Supabase setup runbook to document the supported set.
 - **`src/middleware.ts`** — excluded `/manifest.json` from the auth matcher so the PWA manifest no longer returns `307 → /auth` for logged-out visitors.

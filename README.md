@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./public/icons/icon-192.png" alt="IkoniK app icon — a violet squircle with a graph grid, a glowing pink-to-cyan node spline, and the IkoniK wordmark" width="120" height="120" />
+<img src="./public/icons/icon-192.png" alt="IkoniK app icon — an IK monogram with grid texture and a blue-to-magenta gradient" width="120" height="120" />
 
 # IkoniK
 
