@@ -71,14 +71,19 @@ const MODEL_MAP: Record<string, { apiId: string; label: string }> = {
   'sonnet-4.6': { apiId: 'claude-sonnet-4-6', label: 'Sonnet 4.6' },
 }
 
-function isPreprocessing(value: unknown): value is AnalysisPreprocessing {
-  if (typeof value !== 'object' || value === null) return false
+/**
+ * Lenient parser for the preprocessing block: LLMs commonly omit fields whose
+ * values are false/default, so missing fields fall back to safe defaults
+ * instead of discarding the whole object.
+ */
+function parsePreprocessing(value: unknown): AnalysisPreprocessing | undefined {
+  if (typeof value !== 'object' || value === null) return undefined
   const p = value as Record<string, unknown>
-  return (
-    typeof p.sharpen === 'boolean' &&
-    typeof p.threshold === 'boolean' &&
-    typeof p.trimPadding === 'number'
-  )
+  return {
+    sharpen: typeof p.sharpen === 'boolean' ? p.sharpen : false,
+    threshold: typeof p.threshold === 'boolean' ? p.threshold : false,
+    trimPadding: typeof p.trimPadding === 'number' ? p.trimPadding : 0,
+  }
 }
 
 function isLayer(value: unknown): value is AnalysisLayer {
@@ -98,10 +103,10 @@ function isLayer(value: unknown): value is AnalysisLayer {
  * instead of silently proceeding with an unstructured plan.
  */
 function parseAnalysis(raw: string): ConversionAnalysis | null {
-  const stripped = raw
-    .trim()
-    .replace(/^```(?:json)?\s*/i, '')
-    .replace(/```\s*$/, '')
+  // Extract fenced content wherever it sits — models often wrap the JSON in
+  // conversational text ("Here is the analysis:") despite instructions.
+  const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)
+  const stripped = (fenced ? fenced[1] : raw).trim()
 
   let parsed: Record<string, unknown>
   try {
@@ -119,9 +124,7 @@ function parseAnalysis(raw: string): ConversionAnalysis | null {
       typeof parsed.expectedFidelity === 'string'
         ? parsed.expectedFidelity
         : 'interpretation',
-    preprocessing: isPreprocessing(parsed.preprocessing)
-      ? parsed.preprocessing
-      : undefined,
+    preprocessing: parsePreprocessing(parsed.preprocessing),
     layers: Array.isArray(parsed.layers)
       ? parsed.layers.filter(isLayer)
       : undefined,
@@ -334,6 +337,10 @@ export default function ConvertPage() {
   const handleCopySvg = useCallback(async () => {
     if (!resultSvg) return
     try {
+      // navigator.clipboard is undefined in non-secure contexts and some iframes
+      if (!navigator?.clipboard) {
+        throw new Error('Clipboard API not supported')
+      }
       await navigator.clipboard.writeText(resultSvg)
       setCopied(true)
     } catch {
