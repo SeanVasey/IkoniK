@@ -11,7 +11,7 @@ IkoniK is a Claude-powered vector graphics studio. Today it focuses on raster â†
 | Framework | Next.js 15 (App Router, edge-aware) |
 | Language | TypeScript 5.6, strict mode |
 | Styling | Tailwind CSS 3.4 + custom glassmorphism design tokens |
-| AI | Anthropic SDK (`@anthropic-ai/sdk`) â€” Opus 4.7 (capable tier) / Sonnet 4.6 (fast tier) |
+| AI | Anthropic SDK (`@anthropic-ai/sdk`) â€” Fable 5 (premium tier) / Opus 4.8 (capable tier) / Sonnet 4.6 (fast tier) |
 | Auth + DB + Storage | Supabase (Auth, Postgres with RLS, Storage) |
 | Client state | Zustand (no persist middleware â€” UI state resets per session) |
 | Animation | Framer Motion |
@@ -60,7 +60,7 @@ IkoniK is a Claude-powered vector graphics studio. Today it focuses on raster â†
 
 ## Model wiring
 
-Single source of truth: `src/lib/constants.ts:MODELS`. Mirrored in three server-side `ALLOWED_MODELS` allowlists (`/api/claude`, `/api/convert`, `/api/review`) and the UI `MODEL_MAP` (`src/app/convert/page.tsx`). See `docs/decisions/0001-bump-opus-to-4-7.md` for the current capable-tier choice. To upgrade, use the `bump-claude-model` skill (`.claude/skills/bump-claude-model/SKILL.md`).
+Single source of truth: `src/lib/constants.ts:MODELS`. Mirrored in three server-side `ALLOWED_MODELS` allowlists (`/api/claude`, `/api/convert`, `/api/review`) and the UI `MODEL_MAP` (`src/app/convert/page.tsx`). See `docs/decisions/0002-add-fable-5-and-bump-opus-to-4-8.md` for the current tier choices. To upgrade, use the `bump-claude-model` skill (`.claude/skills/bump-claude-model/SKILL.md`).
 
 ## Project Structure
 

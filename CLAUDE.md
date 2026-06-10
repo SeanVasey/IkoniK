@@ -157,10 +157,11 @@ If a test gap surfaces, add a smoke test. If tooling is missing, document what s
 
 ## Model Configuration
 
-**Capable tier:** `claude-opus-4-7` (adaptive thinking — control effort via prompt keywords (`ultrathink`) or `effortLevel`).
+**Premium tier:** `claude-fable-5` (most intelligent — new tier above Opus; 2× Opus pricing at $10/$50 per MTok).
+**Capable tier:** `claude-opus-4-8` (adaptive thinking — control effort via prompt keywords (`ultrathink`) or `effortLevel`).
 **Fast tier:** `claude-sonnet-4-6` (lower latency, high quality for routine work).
 
-Both IDs live in **one source of truth**: `src/lib/constants.ts:MODELS`. They are mirrored in three API routes for server-side validation:
+All IDs live in **one source of truth**: `src/lib/constants.ts:MODELS`. They are mirrored in three API routes for server-side validation:
 
 - `src/app/api/claude/route.ts` — `ALLOWED_MODELS`
 - `src/app/api/convert/route.ts` — `ALLOWED_MODELS`

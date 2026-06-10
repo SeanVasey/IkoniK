@@ -7,7 +7,7 @@ import type { Base64ImageSource } from '@anthropic-ai/sdk/resources/messages';
 
 type ImageMediaType = Base64ImageSource['media_type'];
 
-const ALLOWED_MODELS = ['claude-opus-4-7', 'claude-sonnet-4-6'] as const;
+const ALLOWED_MODELS = ['claude-fable-5', 'claude-opus-4-8', 'claude-sonnet-4-6'] as const;
 type AllowedModel = (typeof ALLOWED_MODELS)[number];
 
 function isAllowedModel(value: string): value is AllowedModel {

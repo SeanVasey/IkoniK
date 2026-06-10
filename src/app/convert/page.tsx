@@ -1,14 +1,21 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useConvertStore } from '@/stores/useConvertStore'
+import type {
+  AnalysisLayer,
+  AnalysisPreprocessing,
+  ConversionAnalysis,
+} from '@/stores/useConvertStore'
 import { useAppStore } from '@/stores/useAppStore'
 import { DropZone } from '@/components/upload/DropZone'
 import { ComparisonView } from '@/components/canvas/ComparisonView'
 import { SourceReport } from '@/components/upload/SourceReport'
 import { GlassCard } from '@/components/shared/GlassCard'
 import { FidelityBadge } from '@/components/shared/FidelityBadge'
+import { AnalysisReport } from '@/components/convert/AnalysisReport'
+import { PipelineProgress, type PipelineStep } from '@/components/convert/PipelineProgress'
 
 function Spinner() {
   return (
@@ -36,10 +43,111 @@ function Spinner() {
   )
 }
 
+function DownloadIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
+    </svg>
+  )
+}
+
 /** Map store model option to API model ID */
 const MODEL_MAP: Record<string, string> = {
-  'opus-4.7': 'claude-opus-4-7',
+  'fable-5': 'claude-fable-5',
+  'opus-4.8': 'claude-opus-4-8',
   'sonnet-4.6': 'claude-sonnet-4-6',
+}
+
+/** Human-readable model names for status messages */
+const MODEL_LABELS: Record<string, string> = {
+  'fable-5': 'Fable 5',
+  'opus-4.8': 'Opus 4.8',
+  'sonnet-4.6': 'Sonnet 4.6',
+}
+
+function isPreprocessing(value: unknown): value is AnalysisPreprocessing {
+  if (typeof value !== 'object' || value === null) return false
+  const p = value as Record<string, unknown>
+  return (
+    typeof p.sharpen === 'boolean' &&
+    typeof p.threshold === 'boolean' &&
+    typeof p.trimPadding === 'number'
+  )
+}
+
+function isLayer(value: unknown): value is AnalysisLayer {
+  if (typeof value !== 'object' || value === null) return false
+  const l = value as Record<string, unknown>
+  return (
+    typeof l.name === 'string' &&
+    typeof l.color === 'string' &&
+    typeof l.order === 'number'
+  )
+}
+
+/**
+ * Parse the raw analysis text from Claude into a structured report.
+ * Tolerates markdown code fences and missing optional fields; falls back to
+ * showing the raw text as the analysis if the payload isn't valid JSON.
+ */
+function parseAnalysis(raw: string): ConversionAnalysis {
+  const fallback: ConversionAnalysis = {
+    analysis: raw,
+    engine: 'unknown',
+    strategy: 'auto',
+    expectedFidelity: 'interpretation',
+  }
+
+  const stripped = raw
+    .trim()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/```\s*$/, '')
+
+  let parsed: Record<string, unknown>
+  try {
+    parsed = JSON.parse(stripped) as Record<string, unknown>
+  } catch {
+    return fallback
+  }
+  if (typeof parsed !== 'object' || parsed === null) return fallback
+
+  return {
+    analysis: typeof parsed.analysis === 'string' ? parsed.analysis : raw,
+    engine: typeof parsed.engine === 'string' ? parsed.engine : 'unknown',
+    strategy: typeof parsed.strategy === 'string' ? parsed.strategy : 'auto',
+    expectedFidelity:
+      typeof parsed.expectedFidelity === 'string'
+        ? parsed.expectedFidelity
+        : 'interpretation',
+    preprocessing: isPreprocessing(parsed.preprocessing)
+      ? parsed.preprocessing
+      : undefined,
+    layers: Array.isArray(parsed.layers)
+      ? parsed.layers.filter(isLayer)
+      : undefined,
+    warnings: Array.isArray(parsed.warnings)
+      ? parsed.warnings.filter((w): w is string => typeof w === 'string')
+      : undefined,
+  }
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 export default function ConvertPage() {
@@ -53,6 +161,7 @@ export default function ConvertPage() {
     metrics,
     isAnalyzing,
     isConverting,
+    isUploading,
     error,
     setAnalyzing,
     setConverting,
@@ -64,6 +173,9 @@ export default function ConvertPage() {
   } = useConvertStore()
 
   const selectedModel = useAppStore((s) => s.selectedModel)
+  const [copied, setCopied] = useState(false)
+
+  const modelLabel = MODEL_LABELS[selectedModel] ?? 'Claude'
 
   const handleAnalyze = useCallback(async () => {
     if (!sourcePreview) return
@@ -97,25 +209,7 @@ export default function ConvertPage() {
       const data = (await response.json()) as { analysis: string }
 
       // The API returns raw JSON text from Claude — parse it
-      let parsed: {
-        analysis: string
-        engine: string
-        strategy: string
-        expectedFidelity: string
-      }
-      try {
-        parsed = JSON.parse(data.analysis)
-      } catch {
-        // If Claude returned non-JSON, use the text as-is
-        parsed = {
-          analysis: data.analysis,
-          engine: 'unknown',
-          strategy: 'auto',
-          expectedFidelity: 'interpretation',
-        }
-      }
-
-      setAnalysis(parsed)
+      setAnalysis(parseAnalysis(data.analysis))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Analysis failed')
     } finally {
@@ -225,6 +319,73 @@ export default function ConvertPage() {
     img.src = url
   }, [resultSvg, sourceFile])
 
+  const handleCopySvg = useCallback(async () => {
+    if (!resultSvg) return
+    try {
+      await navigator.clipboard.writeText(resultSvg)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      setError('Could not copy to clipboard')
+    }
+  }, [resultSvg, setError])
+
+  const resultSize = useMemo(
+    () => (resultSvg ? new Blob([resultSvg]).size : 0),
+    [resultSvg]
+  )
+
+  // Derive pipeline state for the progress display
+  const pipelineSteps: PipelineStep[] = useMemo(() => {
+    const analyzeErrored = Boolean(error) && !isAnalyzing && !analysis
+    const convertErrored =
+      Boolean(error) && !isConverting && Boolean(analysis) && !resultSvg
+
+    return [
+      {
+        id: 'upload',
+        label: 'Upload',
+        status: isUploading ? 'active' : sourceFile ? 'done' : 'pending',
+      },
+      {
+        id: 'analyze',
+        label: 'Analyze',
+        status: isAnalyzing
+          ? 'active'
+          : analysis
+            ? 'done'
+            : analyzeErrored
+              ? 'error'
+              : 'pending',
+      },
+      {
+        id: 'convert',
+        label: 'Convert',
+        status: isConverting
+          ? 'active'
+          : resultSvg
+            ? 'done'
+            : convertErrored
+              ? 'error'
+              : 'pending',
+      },
+    ]
+  }, [sourceFile, isUploading, isAnalyzing, analysis, isConverting, resultSvg, error])
+
+  const statusText = isUploading
+    ? 'Uploading image…'
+    : isAnalyzing
+      ? `Analyzing image with ${modelLabel}…`
+      : isConverting
+        ? `Generating SVG with ${modelLabel}…`
+        : resultSvg
+          ? 'Conversion complete — ready to download'
+          : analysis
+            ? 'Analysis complete — ready to convert'
+            : sourceFile
+              ? 'Ready to analyze'
+              : undefined
+
   const svgToShow = resultSvg ?? instantPreview
 
   return (
@@ -299,25 +460,18 @@ export default function ConvertPage() {
             </h2>
 
             <div className="mt-4 space-y-4">
+              {/* Pipeline progress */}
+              {sourceFile && (
+                <PipelineProgress steps={pipelineSteps} statusText={statusText} />
+              )}
+
               {/* File info */}
               {sourceFile && sourcePreview && (
                 <SourceReport file={sourceFile} preview={sourcePreview} />
               )}
 
-              {/* Analysis info */}
-              {analysis && (
-                <div className="rounded-lg bg-accent-surface p-3 text-sm">
-                  <p className="font-medium text-accent-light">
-                    Analysis Complete
-                  </p>
-                  <p className="mt-1 text-xs text-text-secondary">
-                    Engine: {analysis.engine} -- Strategy: {analysis.strategy}
-                  </p>
-                  <p className="mt-0.5 text-xs text-text-tertiary">
-                    Expected fidelity: {analysis.expectedFidelity}
-                  </p>
-                </div>
-              )}
+              {/* Analysis report */}
+              {analysis && <AnalysisReport analysis={analysis} />}
 
               {/* Action buttons */}
               <div className="space-y-2">
@@ -325,7 +479,7 @@ export default function ConvertPage() {
                 <button
                   type="button"
                   onClick={handleAnalyze}
-                  disabled={!sourceFile || isAnalyzing}
+                  disabled={!sourceFile || isAnalyzing || isConverting}
                   className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-dark disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {isAnalyzing ? (
@@ -333,6 +487,8 @@ export default function ConvertPage() {
                       <Spinner />
                       Analyzing...
                     </>
+                  ) : analysis ? (
+                    'Re-analyze Image'
                   ) : (
                     'Analyze Image'
                   )}
@@ -342,7 +498,7 @@ export default function ConvertPage() {
                 <button
                   type="button"
                   onClick={handleConvert}
-                  disabled={!analysis || isConverting}
+                  disabled={!analysis || isAnalyzing || isConverting}
                   className="flex w-full items-center justify-center gap-2 rounded-lg border border-accent bg-accent-surface px-4 py-2.5 text-sm font-medium text-accent-light transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {isConverting ? (
@@ -355,56 +511,50 @@ export default function ConvertPage() {
                   )}
                 </button>
 
-                {/* Download buttons */}
+                {/* Download section */}
                 {resultSvg && (
-                  <div className="flex gap-2 pt-1">
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-2 rounded-lg bg-pewter p-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+                        Download Result
+                      </h3>
+                      <span className="font-mono text-[11px] text-text-tertiary">
+                        {formatFileSize(resultSize)}
+                      </span>
+                    </div>
+
                     <button
                       type="button"
                       onClick={handleDownloadSvg}
-                      className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-success/15 px-3 py-2 text-sm font-medium text-success transition-colors hover:bg-success/25"
+                      className="flex w-full items-center justify-center gap-2 rounded-lg bg-success px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-success/85"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                        <polyline points="7 10 12 15 17 10" />
-                        <line x1="12" y1="15" x2="12" y2="3" />
-                      </svg>
-                      SVG
+                      <DownloadIcon />
+                      Download SVG
                     </button>
-                    <button
-                      type="button"
-                      onClick={handleDownloadPng}
-                      className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-info/15 px-3 py-2 text-sm font-medium text-info transition-colors hover:bg-info/25"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
+
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={handleDownloadPng}
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-info/15 px-3 py-2 text-sm font-medium text-info transition-colors hover:bg-info/25"
                       >
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                        <polyline points="7 10 12 15 17 10" />
-                        <line x1="12" y1="15" x2="12" y2="3" />
-                      </svg>
-                      PNG
-                    </button>
-                  </div>
+                        <DownloadIcon />
+                        PNG
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCopySvg}
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-white/5 px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-white/10 hover:text-text-primary"
+                        aria-live="polite"
+                      >
+                        {copied ? '✓ Copied' : 'Copy SVG'}
+                      </button>
+                    </div>
+                  </motion.div>
                 )}
 
                 {/* Reset */}

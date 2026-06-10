@@ -67,18 +67,21 @@ describe('useAppStore', () => {
     useAppStore.setState({
       user: null,
       isLoading: true,
-      selectedModel: 'opus-4.7',
+      selectedModel: 'opus-4.8',
       sidebarOpen: true,
     })
   })
 
   it('has correct default model', () => {
-    expect(useAppStore.getState().selectedModel).toBe('opus-4.7')
+    expect(useAppStore.getState().selectedModel).toBe('opus-4.8')
   })
 
   it('switches model', () => {
     useAppStore.getState().setSelectedModel('sonnet-4.6')
     expect(useAppStore.getState().selectedModel).toBe('sonnet-4.6')
+
+    useAppStore.getState().setSelectedModel('fable-5')
+    expect(useAppStore.getState().selectedModel).toBe('fable-5')
   })
 
   it('toggles sidebar', () => {

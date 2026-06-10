@@ -6,7 +6,7 @@ Deferred work items tracked here. Link to GitHub issues when available.
 
 - [ ] Implement design mode (vector-from-prompt)
 - [ ] Add admin dashboard analytics (per-user usage trends, cost attribution)
-- [ ] Re-baseline Anthropic token cost dashboard against Opus 4.7 (re-run `count_tokens()` on representative uploads — see ADR 0001)
+- [ ] Re-baseline Anthropic token cost dashboard against Fable 5 / Opus 4.8 (re-run `count_tokens()` on representative uploads — see ADR 0002)
 
 ## Done
 

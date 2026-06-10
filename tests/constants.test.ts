@@ -32,6 +32,13 @@ describe('constants', () => {
     }
   })
 
+  it('includes the three serving tiers', () => {
+    const ids = MODELS.map((m) => m.id)
+    expect(ids).toContain('claude-fable-5')
+    expect(ids).toContain('claude-opus-4-8')
+    expect(ids).toContain('claude-sonnet-4-6')
+  })
+
   it('sets max file size to 10 MB', () => {
     expect(MAX_FILE_SIZE).toBe(10 * 1024 * 1024)
   })

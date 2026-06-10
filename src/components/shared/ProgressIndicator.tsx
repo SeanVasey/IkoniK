@@ -12,7 +12,14 @@ export function ProgressIndicator({ label, progress }: ProgressIndicatorProps) {
 
   return (
     <div className="w-full space-y-2">
-      <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-pewter">
+      <div
+        className="relative h-1.5 w-full overflow-hidden rounded-full bg-pewter"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={isDeterminate ? Math.round(progress) : undefined}
+        aria-label={label ?? 'Progress'}
+      >
         {isDeterminate ? (
           <motion.div
             className="absolute inset-y-0 left-0 rounded-full bg-accent"
