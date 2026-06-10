@@ -24,7 +24,7 @@ interface PipelineProgressProps {
  * pretending to know their true duration.
  */
 export function PipelineProgress({ steps, statusText }: PipelineProgressProps) {
-  const total = steps.length
+  const total = Math.max(steps.length, 1)
   const doneCount = steps.filter((s) => s.status === 'done').length
   const hasActive = steps.some((s) => s.status === 'active')
 

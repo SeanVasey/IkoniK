@@ -15,6 +15,11 @@ const ENGINE_HINTS: Record<string, string> = {
   vtracer: 'Photographic & multi-colour tracing',
 }
 
+/** Only hex colours pass through to the inline swatch style */
+function safeSwatchColor(color: string): string | undefined {
+  return /^#[0-9a-fA-F]{3,8}$/.test(color) ? color : undefined
+}
+
 interface AnalysisReportProps {
   analysis: ConversionAnalysis
 }
@@ -91,8 +96,8 @@ export function AnalysisReport({ analysis }: AnalysisReportProps) {
               .map((layer) => (
                 <li key={`${layer.order}-${layer.name}`} className="flex items-center gap-2 text-xs">
                   <span
-                    className="h-3 w-3 flex-shrink-0 rounded-sm border border-border-subtle"
-                    style={{ backgroundColor: layer.color }}
+                    className="h-3 w-3 flex-shrink-0 rounded-sm border border-border-subtle bg-pewter"
+                    style={{ backgroundColor: safeSwatchColor(layer.color) }}
                     aria-hidden="true"
                   />
                   <span className="truncate text-text-secondary">{layer.name}</span>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useConvertStore } from '@/stores/useConvertStore'
 import type {
@@ -64,18 +64,11 @@ function DownloadIcon() {
   )
 }
 
-/** Map store model option to API model ID */
-const MODEL_MAP: Record<string, string> = {
-  'fable-5': 'claude-fable-5',
-  'opus-4.8': 'claude-opus-4-8',
-  'sonnet-4.6': 'claude-sonnet-4-6',
-}
-
-/** Human-readable model names for status messages */
-const MODEL_LABELS: Record<string, string> = {
-  'fable-5': 'Fable 5',
-  'opus-4.8': 'Opus 4.8',
-  'sonnet-4.6': 'Sonnet 4.6',
+/** Map store model option to API model ID + display label */
+const MODEL_MAP: Record<string, { apiId: string; label: string }> = {
+  'fable-5': { apiId: 'claude-fable-5', label: 'Fable 5' },
+  'opus-4.8': { apiId: 'claude-opus-4-8', label: 'Opus 4.8' },
+  'sonnet-4.6': { apiId: 'claude-sonnet-4-6', label: 'Sonnet 4.6' },
 }
 
 function isPreprocessing(value: unknown): value is AnalysisPreprocessing {
@@ -100,17 +93,11 @@ function isLayer(value: unknown): value is AnalysisLayer {
 
 /**
  * Parse the raw analysis text from Claude into a structured report.
- * Tolerates markdown code fences and missing optional fields; falls back to
- * showing the raw text as the analysis if the payload isn't valid JSON.
+ * Tolerates markdown code fences and missing optional fields. Returns null
+ * when the payload isn't a JSON object so the caller can surface the failure
+ * instead of silently proceeding with an unstructured plan.
  */
-function parseAnalysis(raw: string): ConversionAnalysis {
-  const fallback: ConversionAnalysis = {
-    analysis: raw,
-    engine: 'unknown',
-    strategy: 'auto',
-    expectedFidelity: 'interpretation',
-  }
-
+function parseAnalysis(raw: string): ConversionAnalysis | null {
   const stripped = raw
     .trim()
     .replace(/^```(?:json)?\s*/i, '')
@@ -120,9 +107,9 @@ function parseAnalysis(raw: string): ConversionAnalysis {
   try {
     parsed = JSON.parse(stripped) as Record<string, unknown>
   } catch {
-    return fallback
+    return null
   }
-  if (typeof parsed !== 'object' || parsed === null) return fallback
+  if (typeof parsed !== 'object' || parsed === null) return null
 
   return {
     analysis: typeof parsed.analysis === 'string' ? parsed.analysis : raw,
@@ -175,15 +162,25 @@ export default function ConvertPage() {
   const selectedModel = useAppStore((s) => s.selectedModel)
   const [copied, setCopied] = useState(false)
 
-  const modelLabel = MODEL_LABELS[selectedModel] ?? 'Claude'
+  useEffect(() => {
+    if (!copied) return
+    const timer = setTimeout(() => setCopied(false), 2000)
+    return () => clearTimeout(timer)
+  }, [copied])
+
+  const modelLabel = MODEL_MAP[selectedModel]?.label ?? 'Claude'
 
   const handleAnalyze = useCallback(async () => {
     if (!sourcePreview) return
 
     setAnalyzing(true)
     setError(null)
+    // Re-analyzing restarts the pipeline — stale results no longer match
+    setAnalysis(null)
+    setResultSvg(null)
+    setMetrics(null)
 
-    const model = MODEL_MAP[selectedModel] ?? 'claude-sonnet-4-6'
+    const model = MODEL_MAP[selectedModel]?.apiId ?? 'claude-sonnet-4-6'
 
     // Extract base64 data and media type from the data URL
     const match = sourcePreview.match(/^data:(image\/\w+);base64,(.+)$/)
@@ -209,13 +206,28 @@ export default function ConvertPage() {
       const data = (await response.json()) as { analysis: string }
 
       // The API returns raw JSON text from Claude — parse it
-      setAnalysis(parseAnalysis(data.analysis))
+      const parsed = parseAnalysis(data.analysis)
+      if (!parsed) {
+        throw new Error(
+          'The model returned an unstructured response. Try analyzing again.'
+        )
+      }
+      setAnalysis(parsed)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Analysis failed')
     } finally {
       setAnalyzing(false)
     }
-  }, [sourcePreview, uploadPath, selectedModel, setAnalyzing, setError, setAnalysis])
+  }, [
+    sourcePreview,
+    uploadPath,
+    selectedModel,
+    setAnalyzing,
+    setError,
+    setAnalysis,
+    setResultSvg,
+    setMetrics,
+  ])
 
   const handleConvert = useCallback(async () => {
     if (!sourcePreview || !analysis) return
@@ -223,7 +235,7 @@ export default function ConvertPage() {
     setConverting(true)
     setError(null)
 
-    const model = MODEL_MAP[selectedModel] ?? 'claude-sonnet-4-6'
+    const model = MODEL_MAP[selectedModel]?.apiId ?? 'claude-sonnet-4-6'
 
     // Extract base64 from the data URL
     const match = sourcePreview.match(/^data:(image\/\w+);base64,(.+)$/)
@@ -324,7 +336,6 @@ export default function ConvertPage() {
     try {
       await navigator.clipboard.writeText(resultSvg)
       setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
     } catch {
       setError('Could not copy to clipboard')
     }
