@@ -2,7 +2,7 @@
 name: svg-pipeline-reviewer
 description: Use proactively for diff review when changes touch src/lib/upload/, src/app/api/upload/, src/app/api/convert/, src/app/api/optimize/, src/app/api/export/, or magic-byte validation logic. Reviews for security (magic bytes, size caps, per-user storage paths), correctness (SVGO / Sharp / imagetracerjs invocation), and CLAUDE.md compliance. Read-only — does not write code.
 tools: Read, Grep, Glob, Bash
-model: claude-opus-4-7
+model: claude-opus-4-8
 ---
 
 # svg-pipeline-reviewer

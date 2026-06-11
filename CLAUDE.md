@@ -15,10 +15,10 @@ You are operating as a **senior staff engineer + product-minded UX lead** inside
 
 ## Thinking & Planning Discipline
 
-You are running on **Claude Opus 4.7** with adaptive thinking. Use it.
+You are running on **Claude Opus 4.8** with adaptive thinking. Use it.
 
 - **Default to Plan mode** (`Shift+Tab Shift+Tab` in the CLI) for any change that touches more than one file, an API route under `src/app/api/`, auth or RLS, the upload pipeline (`src/lib/upload/*`, `src/app/api/upload/`), or model wiring. Trivial typo or copy fixes may skip it.
-- For architectural decisions, include the keyword **`ultrathink`** in your prompt and pin `effortLevel: "xhigh"` for Opus 4.7 sessions in `.claude/settings.json`. Save `medium` for short refactors and `low` for status checks.
+- For architectural decisions, include the keyword **`ultrathink`** in your prompt and pin `effortLevel: "xhigh"` for Opus 4.8 sessions in `.claude/settings.json`. Save `medium` for short refactors and `low` for status checks.
 - Read `tasks/lessons.md` at session start. Append a new entry after any non-trivial debugging session — what failed, what fixed it, what to check next time.
 - Write the plan to a file before execution on multi-step work. The plan is the contract; the diff is the proof.
 - Run **`/verify`** (or the project's `verify-ikonik` skill) before declaring any task done. Type-checks and unit tests prove code is *correct*; `/verify` proves the *feature works*. They are not interchangeable.
