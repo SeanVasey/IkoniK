@@ -20,6 +20,13 @@
   --success: #34D0A8;
   --warning: #FFB84D;
   --error: #FF5C45;
+
+  /* VASEY/AI universal footer — aliases onto the IkoniK palette */
+  --accent-primary: var(--accent);
+  --accent-dim: var(--accent-dark);
+  --accent-deep: rgba(124, 92, 252, 0.5);
+  --border-glow: rgba(124, 92, 252, 0.25);
+  --text-muted: var(--text-tertiary);
 }
 
 html,
@@ -96,4 +103,85 @@ body {
       #ffffff 0% 50%
     ) 0 0 / 16px 16px;
   }
+}
+
+/* ═══ VASEY/AI Universal Footer ═══ */
+.app-footer {
+  margin-top: 56px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border-subtle);
+  text-align: center;
+  animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+.footer-divider {
+  width: 48px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-deep), transparent);
+  margin: 0 auto 28px;
+}
+.footer-brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.footer-logo {
+  opacity: 0.45;
+  transition: opacity 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+}
+.footer-logo:hover {
+  opacity: 0.75;
+}
+.footer-logo-vm {
+  width: 36px;
+  height: 31px;
+}
+.footer-logo-vai {
+  width: 48px;
+  height: 48px;
+}
+.footer-logo-sep {
+  width: 1px;
+  height: 24px;
+  background: var(--border-glow);
+}
+.footer-suite-tag {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.footer-app-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0.7;
+  margin-bottom: 16px;
+}
+.footer-copyright {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0.5;
+  line-height: 1.6;
+  padding-bottom: 8px;
+}
+.footer-copyright a {
+  color: var(--accent-dim);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.footer-copyright a:hover {
+  color: var(--accent-primary);
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
