@@ -9,7 +9,7 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen flex flex-col bg-void">
       <Header />
-      <main className="flex-1 pt-14">{children}</main>
+      <main className="flex-1 pt-safe-header">{children}</main>
       <Footer />
     </div>
   )

@@ -105,6 +105,43 @@ body {
   }
 }
 
+@layer utilities {
+  /* iOS safe-area insets (viewport-fit=cover is set in src/app/layout.tsx).
+     Plain-value fallbacks come first so browsers without env()/max() keep
+     the original padding. */
+  .px-safe-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  .px-safe-6 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-left: max(1.5rem, env(safe-area-inset-left));
+    padding-right: max(1.5rem, env(safe-area-inset-right));
+  }
+  .pb-safe-6 {
+    padding-bottom: 1.5rem;
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  }
+  /* Fixed header: grows by the notch height and pads its content below it */
+  .h-safe-header {
+    height: 3.5rem;
+    height: calc(3.5rem + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+  }
+  /* Main content offset to clear the fixed header (flush / with 1rem gap) */
+  .pt-safe-header {
+    padding-top: 3.5rem;
+    padding-top: calc(3.5rem + env(safe-area-inset-top));
+  }
+  .pt-safe-header-loose {
+    padding-top: 4.5rem;
+    padding-top: calc(4.5rem + env(safe-area-inset-top));
+  }
+}
+
 /* ═══ VASEY/AI Universal Footer ═══ */
 .app-footer {
   margin-top: 56px;

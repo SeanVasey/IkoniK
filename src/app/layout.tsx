@@ -33,6 +33,9 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
+  // Extend the canvas behind the iOS notch/home indicator; layout chrome
+  // (Header, Footer, main) pads itself back out with safe-area insets.
+  viewportFit: 'cover',
   themeColor: '#0A0E14',
 }
 
