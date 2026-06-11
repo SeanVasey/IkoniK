@@ -1,7 +1,7 @@
 export { Footer }
 export default function Footer() {
   return (
-    <footer className="app-footer px-6 pb-6">
+    <footer className="app-footer px-safe-6 pb-safe-6">
       <div className="footer-divider" />
       <div className="footer-brand-row">
         {/* Vasey Multimedia — VM Monogram */}

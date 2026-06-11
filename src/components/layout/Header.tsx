@@ -31,7 +31,7 @@ export default function Header() {
   }
 
   return (
-    <header className="glass fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 md:px-6">
+    <header className="glass fixed top-0 left-0 right-0 z-50 h-safe-header flex items-center justify-between px-safe-4 md:px-safe-6">
       {/* Left: Brand */}
       <div className="flex items-center gap-3">
         {/* Mobile hamburger */}
