@@ -28,7 +28,10 @@ export const useAppStore = create<AppState>((set) => ({
   user: null,
   isLoading: true,
   selectedModel: 'opus-4.8',
-  sidebarOpen: true,
+  // Drawer is closed until the hamburger opens it. The old default of `true`
+  // was part of the dead-hamburger bug: the first tap "closed" a drawer that
+  // was never rendered.
+  sidebarOpen: false,
 
   setUser: (user) => set({ user }),
   setLoading: (isLoading) => set({ isLoading }),

@@ -1,3 +1,5 @@
+import { version } from '../../../package.json'
+
 export { Footer }
 export default function Footer() {
   return (
@@ -52,7 +54,7 @@ export default function Footer() {
       </div>
       <div className="footer-suite-tag">A VASEY/AI Production</div>
       <div className="footer-app-tag">
-        IkoniK v0.1.0 · Claude-Powered Vector Graphics Studio
+        IkoniK v{version} · Claude-Powered Vector Graphics Studio
       </div>
       <div className="footer-copyright">
         &copy; 2026{' '}

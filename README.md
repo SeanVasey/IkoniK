@@ -102,7 +102,7 @@ Copy `.env.example` to `.env.local` and fill in the values:
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public | Supabase anonymous/public key (safe for client — RLS enforces security) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server only | Supabase service role key (bypasses RLS — never expose to client) |
 
-> Sign-in supports **GitHub** and **Google** OAuth plus passwordless **email magic links**. OAuth provider secrets are configured in the **Supabase Dashboard** under Authentication > Providers, not in `.env.local`; email magic links work with no provider setup.
+> Sign-in is **OAuth-only**: **Google**, **GitHub**, and **Microsoft**. Provider secrets are configured in the **Supabase Dashboard** under Authentication > Providers, not in `.env.local`. New accounts wait in a pending state until approved from the admin dashboard.
 
 ### Development
 
@@ -138,8 +138,9 @@ IkoniK/
 ├── src/
 │   ├── app/                  # Next.js App Router pages & API routes
 │   │   ├── api/              # Backend endpoints (claude, convert, export, optimize, review, upload)
-│   │   ├── auth/             # OAuth sign-in & callback
-│   │   ├── convert/          # Main conversion interface
+│   │   ├── login/            # OAuth sign-in (Google / GitHub / Microsoft)
+│   │   ├── auth/             # OAuth callback (+ legacy /auth redirect)
+│   │   ├── studio/           # Main conversion interface (auth-protected)
 │   │   ├── design/           # Icon design (coming soon)
 │   │   ├── admin/            # User management dashboard
 │   │   ├── pending/          # Approval-pending status page

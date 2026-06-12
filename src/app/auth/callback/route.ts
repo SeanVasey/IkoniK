@@ -10,6 +10,7 @@ export async function GET(request: Request) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
-  // Redirect to root — middleware will route based on profile status
-  return NextResponse.redirect(`${origin}/`);
+  // Head for the studio — middleware bounces pending/suspended accounts
+  // to their status pages before they ever reach it.
+  return NextResponse.redirect(`${origin}/studio`);
 }
