@@ -31,10 +31,10 @@ export default function DesignPage() {
           This feature is currently in development and will be available in a future update.
         </p>
         <Link
-          href="/convert"
+          href="/studio"
           className="inline-flex items-center gap-2 px-6 py-3 bg-accent hover:bg-accent-dark text-white rounded-lg transition-colors font-medium"
         >
-          Go to Convert Mode
+          Go to the Studio
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M5 12h14M12 5l7 7-7 7" />
           </svg>

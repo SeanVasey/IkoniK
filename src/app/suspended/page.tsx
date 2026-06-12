@@ -9,7 +9,7 @@ export default function SuspendedPage() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push('/auth');
+    router.push('/');
   };
 
   return (

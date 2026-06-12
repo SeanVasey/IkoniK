@@ -9,7 +9,7 @@ export default function PendingPage() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push('/auth');
+    router.push('/');
   };
 
   return (

@@ -152,17 +152,18 @@ export function DropZone({ className = '' }: DropZoneProps) {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         className={`
-          flex min-h-[280px] cursor-pointer flex-col items-center justify-center
-          rounded-xl border-2 border-dashed p-8 transition-all duration-200
+          glass flex min-h-[280px] cursor-pointer flex-col items-center justify-center
+          rounded-xl p-8 transition-all duration-200
           ${
             isDragOver
-              ? 'border-accent bg-accent-glow shadow-[0_0_40px_rgba(124,92,252,0.1)]'
-              : 'border-text-tertiary hover:border-accent hover:bg-accent-surface'
+              ? '!border-accent bg-accent-glow shadow-[0_0_48px_rgba(124,92,252,0.2)]'
+              : 'hover:!border-accent/50 hover:bg-accent-surface'
           }
+          focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent
         `}
         aria-label="Upload image drop zone"
       >
-        {/* Upload icon */}
+        {/* Upload glyph — accent with glow */}
         <motion.div
           animate={isDragOver ? { y: -4 } : { y: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
@@ -178,8 +179,8 @@ export function DropZone({ className = '' }: DropZoneProps) {
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className={`transition-colors duration-200 ${
-              isDragOver ? 'text-accent' : 'text-text-tertiary'
+            className={`text-accent drop-shadow-[0_0_16px_rgba(124,92,252,0.6)] transition-transform duration-200 ${
+              isDragOver ? 'scale-110' : ''
             }`}
             aria-hidden="true"
           >
@@ -189,15 +190,25 @@ export function DropZone({ className = '' }: DropZoneProps) {
           </svg>
         </motion.div>
 
-        <p className="text-lg font-medium text-text-primary">
-          Drop your image here
+        <p className="font-display text-3xl tracking-wide text-text-primary">
+          DRAG &amp; DROP IMAGE
         </p>
         <p className="mt-1 text-sm text-text-secondary">
-          or click to browse
+          or tap to browse
         </p>
-        <p className="mt-3 text-xs text-text-tertiary">
-          PNG, JPEG, WebP, GIF -- up to 10 MB
-        </p>
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+          {['PNG', 'JPEG', 'WEBP', 'GIF'].map((format) => (
+            <span
+              key={format}
+              className="rounded-full border border-border-subtle bg-pewter/60 px-2.5 py-1 font-mono text-[11px] text-text-secondary"
+            >
+              {format}
+            </span>
+          ))}
+          <span className="font-mono text-[11px] text-text-tertiary">
+            ≤ 10 MB
+          </span>
+        </div>
 
         {selectedFileName && selectedFileSize !== null && (
           <div className="mt-4 flex items-center gap-2 rounded-lg bg-pewter px-3 py-2">

@@ -68,12 +68,18 @@ describe('useAppStore', () => {
       user: null,
       isLoading: true,
       selectedModel: 'opus-4.8',
-      sidebarOpen: true,
+      sidebarOpen: false,
     })
   })
 
   it('has correct default model', () => {
     expect(useAppStore.getState().selectedModel).toBe('opus-4.8')
+  })
+
+  it('keeps the nav drawer closed by default', () => {
+    // Regression: the drawer state used to default to open, so the first
+    // hamburger tap "closed" a drawer that was never rendered.
+    expect(useAppStore.getState().sidebarOpen).toBe(false)
   })
 
   it('switches model', () => {
@@ -85,10 +91,10 @@ describe('useAppStore', () => {
   })
 
   it('toggles sidebar', () => {
-    expect(useAppStore.getState().sidebarOpen).toBe(true)
-    useAppStore.getState().toggleSidebar()
     expect(useAppStore.getState().sidebarOpen).toBe(false)
     useAppStore.getState().toggleSidebar()
     expect(useAppStore.getState().sidebarOpen).toBe(true)
+    useAppStore.getState().toggleSidebar()
+    expect(useAppStore.getState().sidebarOpen).toBe(false)
   })
 })

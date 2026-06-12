@@ -172,13 +172,16 @@ body {
 .footer-logo:hover {
   opacity: 0.75;
 }
+/* Optical sizing: the VM glyph fills its viewBox while the V/AI glyph only
+   covers ~55% of its 1080 box, so the V/AI mark gets a larger box to render
+   at the same visual height (~31px). */
 .footer-logo-vm {
   width: 36px;
   height: 31px;
 }
 .footer-logo-vai {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
 }
 .footer-logo-sep {
   width: 1px;
@@ -221,4 +224,16 @@ body {
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Reduced motion: collapse all animations and transitions to a single frame */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
