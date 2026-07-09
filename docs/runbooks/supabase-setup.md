@@ -125,7 +125,10 @@ produces a distinctive outage signature (this happened in July 2026):
 
 **Confirm it** without the dashboard: `nslookup <ref>.supabase.co` — NXDOMAIN
 means paused (or deleted). A healthy project answers
-`https://<ref>.supabase.co/auth/v1/health` with 200.
+`curl -I -H "apikey: <anon_key>" https://<ref>.supabase.co/auth/v1/health`
+with 200 OK. (Without the `apikey` header the gateway returns 401 — but even
+that proves the project is awake; a paused project returns nothing at all
+because DNS fails.)
 
 **Restore:** Supabase Dashboard → select the project → **Restore project**.
 Restores take a couple of minutes; data and config are preserved. Projects
