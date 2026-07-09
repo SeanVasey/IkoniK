@@ -17,3 +17,11 @@ Append entries here after non-trivial debugging sessions. Review at the start of
 - **Fix:** Built `NavDrawer` to consume the state, flipped the default to `false`, added a regression test asserting the closed-by-default state and Esc-close behavior.
 - **Check next time:** when a button "does nothing", don't stop at confirming the handler fires — trace the state to a *consumer*. Orphaned zustand fields look exactly like working code. Also grep for components that read the field (`sidebarOpen` had zero readers).
 - **Bonus gotcha:** `Header` read `user` from the app store but nothing ever called `setUser`, so the avatar/sign-out menu never appeared for anyone. UI driven by store state needs an owner that populates it — or should read the source (Supabase session) directly.
+
+### "The app is down" but Vercel says READY — Supabase free-tier auto-pause
+
+- **Symptom:** Landing page and /login return 200, deployment READY, yet sign-in fails and every protected route bounces to /login. Nothing was deployed for ~a month.
+- **Diagnosis path:** local build passed → latest Vercel prod deploy READY → curled the real production domain (note: only `ikonik-zeta.vercel.app` is public; the `-vaseymultimedia` and git-branch aliases sit behind Vercel SSO and 302 for anonymous visitors — don't mistake that for the outage). Extracted `NEXT_PUBLIC_SUPABASE_URL` from the deployed JS bundle, and the host **didn't resolve in DNS**. Paused Supabase projects lose their DNS record entirely.
+- **Why it looks half-alive:** `src/middleware.ts` treats a failed `supabase.auth.getUser()` (network error) the same as "no session" → redirect to /login instead of a 500. The static shell renders fine; only everything that touches Supabase is dead.
+- **Fix:** Restore the project in the Supabase Dashboard (must happen within 90 days of pausing). Prevention: `.github/workflows/keepalive.yml` pings the REST gateway twice a week once `KEEPALIVE_SUPABASE_*` secrets are set.
+- **Check next time:** for "app down" reports, check the *backend's* DNS/health first when the frontend returns 200 — `curl https://<ref>.supabase.co/auth/v1/health`. And remember free-tier Supabase pauses after ~7 idle days.

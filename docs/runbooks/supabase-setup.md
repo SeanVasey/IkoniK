@@ -108,3 +108,40 @@ You can now reach `/convert` and the `/admin` approval panel.
 4. Check **Supabase → Logs** and **Vercel → Runtime Logs** if anything 500s —
    a "supabaseUrl is required" / "Missing … environment variables" message
    confirms a still-missing env var from step 1.
+
+## 6. Free-tier auto-pause (app suddenly dead after inactivity)
+
+Supabase **pauses free-tier projects after ~7 days without API activity**, and
+a paused project's `<ref>.supabase.co` DNS record is removed entirely. This
+produces a distinctive outage signature (this happened in July 2026):
+
+- The Vercel deployment is `READY` and static pages return **200** — the
+  landing page and `/login` look perfectly healthy.
+- Sign-in does nothing or fails with a network / "Failed to fetch" error,
+  because the browser can't resolve the Supabase host.
+- Every protected route (`/studio`, `/admin`, the API routes) bounces to
+  `/login`: the middleware's `supabase.auth.getUser()` fails and is treated
+  as "no session".
+
+**Confirm it** without the dashboard: `nslookup <ref>.supabase.co` — NXDOMAIN
+means paused (or deleted). A healthy project answers
+`https://<ref>.supabase.co/auth/v1/health` with 200.
+
+**Restore:** Supabase Dashboard → select the project → **Restore project**.
+Restores take a couple of minutes; data and config are preserved. Projects
+paused for more than **90 days** can no longer be restored in place — don't
+let it sit.
+
+**Prevent it:** `.github/workflows/keepalive.yml` pings the REST gateway
+twice a week, which counts as activity. It needs two repository **Actions
+secrets** (Settings → Secrets and variables → Actions):
+
+| Secret | Value |
+|---|---|
+| `KEEPALIVE_SUPABASE_URL` | Same value as `NEXT_PUBLIC_SUPABASE_URL` |
+| `KEEPALIVE_SUPABASE_ANON_KEY` | Same value as `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
+
+Until those secrets are set the workflow logs a warning and skips. Once set,
+a failing scheduled run doubles as an outage alert (GitHub emails the repo
+owner when a scheduled workflow fails). Upgrading the Supabase project to a
+paid plan also disables auto-pausing entirely.
