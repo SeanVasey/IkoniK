@@ -1,0 +1,38 @@
+name: Supabase keep-alive
+
+# Supabase pauses free-tier projects after ~7 days without API activity.
+# A paused project drops its DNS record, which kills auth and every
+# protected route while the static shell keeps returning 200 (see
+# docs/runbooks/supabase-setup.md, "Free-tier auto-pause"). Pinging the
+# REST gateway twice a week counts as activity and keeps the project awake.
+
+on:
+  schedule:
+    # Mondays and Thursdays at 06:17 UTC — two pings per 7-day window.
+    - cron: '17 6 * * 1,4'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST gateway
+        env:
+          SUPABASE_URL: ${{ secrets.KEEPALIVE_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.KEEPALIVE_SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::warning::KEEPALIVE_SUPABASE_URL / KEEPALIVE_SUPABASE_ANON_KEY secrets not set — skipping ping. The Supabase project WILL auto-pause after 7 idle days."
+            exit 0
+          fi
+          status=$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            "$SUPABASE_URL/rest/v1/")
+          echo "REST gateway answered HTTP $status"
+          # 200 = alive. Anything else means paused, deleted, or misconfigured
+          # secrets — fail the run so the scheduled-workflow failure email
+          # doubles as an outage alert.
+          [ "$status" = "200" ]

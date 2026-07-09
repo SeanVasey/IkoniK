@@ -61,6 +61,16 @@ OAuth provider secrets (GitHub, Google) are configured in the Supabase Dashboard
    - If the regression is data-related, check Supabase logs and recent RLS policy changes.
 5. **Re-deploy the fix** through the normal PR → preview → main flow.
 
+### Static pages fine but sign-in dead / everything bounces to `/login`
+
+If the deployment is `READY`, the landing page returns 200, but sign-in fails
+and every protected route redirects to `/login`, the Supabase project has
+almost certainly been **auto-paused** (free tier, ~7 idle days — its DNS
+record disappears, so this is invisible to Vercel). Restore it from the
+Supabase Dashboard and see
+[`supabase-setup.md` § Free-tier auto-pause](./supabase-setup.md#6-free-tier-auto-pause-app-suddenly-dead-after-inactivity)
+for the keep-alive workflow that prevents recurrence.
+
 ### Emergency rollback (production down)
 
 If the production site is returning 5xx or the build is broken on `main`:
