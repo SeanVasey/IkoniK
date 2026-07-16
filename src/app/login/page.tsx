@@ -72,7 +72,7 @@ export default function LoginPage() {
         <div className="mb-6 flex justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/icons/icon.svg"
+            src="/icons/icon-ios.svg"
             alt="IkoniK app icon"
             width={104}
             height={104}
