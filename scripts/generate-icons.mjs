@@ -2,9 +2,21 @@
 /**
  * Generate the full IkoniK PWA / favicon asset suite from the master SVG.
  *
- * Source of truth: public/icons/icon.svg (never hand-edit the PNGs — regenerate).
- * Every raster preserves the transparent background from the source SVG, per
- * CLAUDE.md (iOS 18+/26+ relies on transparency for adaptive Home Screen tinting).
+ * Source of truth: ikonik-icon-ios.svg at the repo root — the designed iOS
+ * Home Screen tile (dark rounded-rect body with a pink glow, IK monogram
+ * centered). This script mirrors it to public/icons/icon-ios.svg (the served
+ * copy the SVG favicon links to) so the two never drift, then renders every
+ * raster from it. Never hand-edit the PNGs or the served copy — regenerate.
+ *
+ * Transparency: the tile SVG is opaque *by design* within its rounded body and
+ * transparent only outside the corner radius. We render it faithfully — a
+ * transparent background (no solid-color compositing), so the source's own
+ * transparency is preserved per CLAUDE.md. The opaque tile also fills the
+ * maskable safe zone edge-to-edge, which the bare monogram never did.
+ *
+ * The transparent IK monogram (public/icons/icon.svg) is a separate, optimized
+ * mark used in-app where a transparent background is ideal (Hero, login splash).
+ * It is intentionally NOT the source for these OS/browser chrome rasters.
  *
  * Usage: node scripts/generate-icons.mjs
  */
@@ -17,9 +29,12 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = join(__dirname, '..')
 const iconsDir = join(root, 'public', 'icons')
 const publicDir = join(root, 'public')
-const source = join(iconsDir, 'icon.svg')
+const master = join(root, 'ikonik-icon-ios.svg')
+const servedSvg = join(iconsDir, 'icon-ios.svg')
 
-const svg = readFileSync(source)
+const svg = readFileSync(master)
+// Keep the served SVG (SVG favicon target) byte-identical to the master.
+writeFileSync(servedSvg, svg)
 
 /** PNGs to emit: [filename, size]. */
 const pngTargets = [
@@ -90,7 +105,8 @@ async function main() {
   writeFileSync(join(publicDir, 'favicon.ico'), ico)
   console.log('✓ favicon.ico (16,32,48) → public/')
 
-  console.log('\nAll icon assets generated from public/icons/icon.svg')
+  console.log('✓ icons/icon-ios.svg (served copy mirrored from root master)')
+  console.log('\nAll icon assets generated from ikonik-icon-ios.svg')
 }
 
 main().catch((err) => {
