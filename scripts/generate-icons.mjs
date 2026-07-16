@@ -1,22 +1,24 @@
 #!/usr/bin/env node
 /**
- * Generate the full IkoniK PWA / favicon asset suite from the master SVG.
+ * Generate the full IkoniK PWA / favicon asset suite from the master SVGs.
  *
- * Source of truth: ikonik-icon-ios.svg at the repo root — the designed iOS
- * Home Screen tile (dark rounded-rect body with a pink glow, IK monogram
- * centered). This script mirrors it to public/icons/icon-ios.svg (the served
- * copy the SVG favicon links to) so the two never drift, then renders every
- * raster from it. Never hand-edit the PNGs or the served copy — regenerate.
+ * Two sources of truth, each rendered to the targets it is designed for:
  *
- * Transparency: the tile SVG is opaque *by design* within its rounded body and
- * transparent only outside the corner radius. We render it faithfully — a
- * transparent background (no solid-color compositing), so the source's own
- * transparency is preserved per CLAUDE.md. The opaque tile also fills the
- * maskable safe zone edge-to-edge, which the bare monogram never did.
+ *  1. ikonik-icon-ios.svg (repo root) — the iOS Home Screen tile. It is opaque
+ *     full-bleed edge-to-edge (a pink border plate under the dark rounded body)
+ *     *by design*: iOS applies its own squircle mask, so an opaque plate keeps
+ *     light/dark mode from ever showing through the corners. This is the source
+ *     for the apple-touch-icons only.
  *
- * The transparent IK monogram (public/icons/icon.svg) is a separate, optimized
- * mark used in-app where a transparent background is ideal (Hero, login splash).
- * It is intentionally NOT the source for these OS/browser chrome rasters.
+ *  2. public/icons/icon-ios.svg — the optimized icon with a transparent
+ *     background (transparent outside the rounded body). It is the source for
+ *     every raster where a transparent background is ideal: the PWA / Android /
+ *     browser-chrome icons, the favicons, and favicon.ico. Per CLAUDE.md, these
+ *     rasters preserve the source's transparency (no solid-color compositing).
+ *     This file is a hand-authored source — this script READS it and never
+ *     overwrites it; the SVG favicon in layout.tsx links to it directly.
+ *
+ * Never hand-edit the PNGs — regenerate. Never delete either source SVG.
  *
  * Usage: node scripts/generate-icons.mjs
  */
@@ -29,32 +31,35 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = join(__dirname, '..')
 const iconsDir = join(root, 'public', 'icons')
 const publicDir = join(root, 'public')
-const master = join(root, 'ikonik-icon-ios.svg')
-const servedSvg = join(iconsDir, 'icon-ios.svg')
 
-const svg = readFileSync(master)
-// Keep the served SVG (SVG favicon target) byte-identical to the master.
-writeFileSync(servedSvg, svg)
+// Opaque full-bleed master → iOS Home Screen apple-touch-icons.
+const appleSvg = readFileSync(join(root, 'ikonik-icon-ios.svg'))
+// Optimized transparent master → PWA / favicon / browser-chrome rasters.
+const transparentSvg = readFileSync(join(iconsDir, 'icon-ios.svg'))
 
-/** PNGs to emit: [filename, size]. */
+/**
+ * PNGs to emit: [filename, size, source].
+ * apple-touch-icons render from the opaque tile; everything else from the
+ * transparent optimized icon.
+ */
 const pngTargets = [
-  ['icon-1024.png', 1024],
-  ['icon-512.png', 512],
-  ['icon-384.png', 384],
-  ['icon-192.png', 192],
-  ['icon-144.png', 144],
-  ['icon-96.png', 96],
-  ['apple-touch-icon.png', 180],
-  ['apple-touch-icon-180.png', 180],
-  ['apple-touch-icon-167.png', 167],
-  ['apple-touch-icon-152.png', 152],
-  ['apple-touch-icon-120.png', 120],
-  ['favicon-32.png', 32],
-  ['favicon-16.png', 16],
+  ['icon-1024.png', 1024, transparentSvg],
+  ['icon-512.png', 512, transparentSvg],
+  ['icon-384.png', 384, transparentSvg],
+  ['icon-192.png', 192, transparentSvg],
+  ['icon-144.png', 144, transparentSvg],
+  ['icon-96.png', 96, transparentSvg],
+  ['apple-touch-icon.png', 180, appleSvg],
+  ['apple-touch-icon-180.png', 180, appleSvg],
+  ['apple-touch-icon-167.png', 167, appleSvg],
+  ['apple-touch-icon-152.png', 152, appleSvg],
+  ['apple-touch-icon-120.png', 120, appleSvg],
+  ['favicon-32.png', 32, transparentSvg],
+  ['favicon-16.png', 16, transparentSvg],
 ]
 
-/** Render the SVG to a square transparent PNG buffer at the given size. */
-async function renderPng(size) {
+/** Render an SVG buffer to a square transparent PNG buffer at the given size. */
+async function renderPng(svg, size) {
   return sharp(svg, { density: 384 })
     .resize(size, size, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
     .png({ compressionLevel: 9 })
@@ -91,22 +96,23 @@ function buildIco(images) {
 }
 
 async function main() {
-  for (const [name, size] of pngTargets) {
-    const buf = await renderPng(size)
+  for (const [name, size, svg] of pngTargets) {
+    const buf = await renderPng(svg, size)
     writeFileSync(join(iconsDir, name), buf)
     console.log(`✓ icons/${name} (${size}×${size})`)
   }
 
-  // Multi-size favicon.ico (16, 32, 48) — placed in public/ root for Next.js.
+  // Multi-size favicon.ico (16, 32, 48) — transparent optimized icon, placed in
+  // public/ root for Next.js.
   const icoImages = await Promise.all(
-    [16, 32, 48].map(async (size) => ({ size, data: await renderPng(size) })),
+    [16, 32, 48].map(async (size) => ({ size, data: await renderPng(transparentSvg, size) })),
   )
   const ico = buildIco(icoImages)
   writeFileSync(join(publicDir, 'favicon.ico'), ico)
   console.log('✓ favicon.ico (16,32,48) → public/')
 
-  console.log('✓ icons/icon-ios.svg (served copy mirrored from root master)')
-  console.log('\nAll icon assets generated from ikonik-icon-ios.svg')
+  console.log('\nApple-touch icons ← ikonik-icon-ios.svg (opaque tile)')
+  console.log('PWA / favicon rasters ← public/icons/icon-ios.svg (transparent)')
 }
 
 main().catch((err) => {

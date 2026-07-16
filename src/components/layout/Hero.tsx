@@ -34,7 +34,7 @@ export function Hero({ compact = false, className = '' }: HeroProps) {
         <div className="mt-4 flex items-center justify-center gap-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/icons/icon.svg"
+            src="/icons/icon-ios.svg"
             alt="IkoniK IK monogram"
             width={compact ? 56 : 88}
             height={compact ? 56 : 88}
